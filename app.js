@@ -45,7 +45,12 @@ function startRecognition() {
     const text = event.results[event.results.length - 1][0].transcript.trim();
     log("👂 " + text);
 
-    if (text.includes("エア")) {
+if (
+  text.includes("エア") ||
+  text.includes("エアー") ||
+  text.includes("えーあ") ||
+  text.toLowerCase().includes("air")
+) {
       conversationMode = true;
       respond("呼んだ？どうしたの。");
       return;
