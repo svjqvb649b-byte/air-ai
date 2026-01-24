@@ -51,7 +51,7 @@ function startRecognition() {
   recognition = new SpeechRecognition();
   recognition.lang = "ja-JP";
   recognition.continuous = true;
-  recognition.interimResults = false;
+  recognition.interimResults = true;
 
   recognition.onstart = () => {
     listening = true;
@@ -59,23 +59,26 @@ function startRecognition() {
   };
 
   recognition.onresult = (event) => {
-    const text = event.results[event.results.length - 1][0].transcript.trim();
+    const result = event.results[event.results.length - 1];
+const text = result[0].transcript;
+const isInterim = !result.isFinal;
     log("👂 " + text);
 
 if (
-  text.includes("エア") ||
-  text.includes("エアー") ||
-  text.includes("えーあ") ||
-  text.toLowerCase().includes("air")
+  isInterim && (
+    text.includes("エ") ||
+    text.includes("え") ||
+    text.toLowerCase().includes("a")
+  )
 ) {
-      conversationMode = true;
-      respond(randomReply("call"));
-      return;
-    }
+  conversationMode = true;
+  respond(randomReply("call"));
+  return;
+}
 
-    if (conversationMode) {
-      respond(randomReply("listen"));
-    }
+  if (conversationMode && !isInterim) {
+  respond(randomReply("listen"));
+}
   };
 
   recognition.onend = () => {
