@@ -5,7 +5,7 @@ const tapBtn = document.getElementById("tap");
 let recognition;
 let listening = false;
 let conversationMode = false;
-
+let called = false;
 function log(text) {
   const p = document.createElement("p");
   p.textContent = text;
@@ -65,19 +65,23 @@ const isInterim = !result.isFinal;
     log("👂 " + text);
 
 if (
-  isInterim && (
+  isInterim &&
+  !called &&
+  (
     text.includes("エ") ||
     text.includes("え") ||
     text.toLowerCase().includes("a")
   )
 ) {
   conversationMode = true;
+  called = true;
   respond(randomReply("call"));
   return;
 }
 
-  if (conversationMode && !isInterim) {
+if (conversationMode && !isInterim) {
   respond(randomReply("listen"));
+  called = false; // ← ★これを追加
 }
   };
 
