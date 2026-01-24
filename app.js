@@ -21,7 +21,24 @@ utter.rate = 0.9;   // ゆっくり
 
   speechSynthesis.speak(utter);
 }
+// ==== シエスタ返事セット ====
+const siestaReplies = {
+  call: [
+    "……呼んだの？",
+    "ええ。ここにいる。",
+    "今、あなたの声がした。"
+  ],
+  listen: [
+    "……それで、どうしたの。",
+    "大丈夫。ちゃんと聞いてる。",
+    "落ち着いて。順番に話して。"
+  ]
+};
 
+function randomReply(type) {
+  const list = siestaReplies[type];
+  return list[Math.floor(Math.random() * list.length)];
+}
 function startRecognition() {
   const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -52,12 +69,12 @@ if (
   text.toLowerCase().includes("air")
 ) {
       conversationMode = true;
-      respond("呼んだ？どうしたの。");
+      respond(randomReply("call"));
       return;
     }
 
     if (conversationMode) {
-      respond("うん、ちゃんと聞いてるよ。");
+      respond(randomReply("listen"));
     }
   };
 
