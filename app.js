@@ -17,7 +17,7 @@ function speak(text) {
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = "ja-JP";
 utter.pitch = 0.85; // 少し低め（シエスタ風）
-utter.rate = 0.9;   // ゆっくりめ
+utter.rate = 0.9;   // ゆっくり
 
   speechSynthesis.speak(utter);
 }
