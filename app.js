@@ -1,7 +1,9 @@
 window.addEventListener("DOMContentLoaded", () => {
-  alert("NEW VERSION");
+  const status = document.getElementById("status");
+  const button = document.getElementById("tap");
 
-  document.getElementById("tap").addEventListener("click", () => {
-    alert("タップされた！");
+  button.addEventListener("click", () => {
+    status.textContent = "起動しました";
+    console.log("Air 起動");
   });
 });
