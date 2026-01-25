@@ -1,17 +1,17 @@
 window.addEventListener("DOMContentLoaded", () => {
+  const status = document.getElementById("status");
   const button = document.getElementById("tap");
 
-  // 話し方（シエスタ風）
-  const replies = [
+  // シエスタ風ボイス
+  const voices = [
     "……呼んだ？",
-    "ふぁ……今ちょっと眠い",
-    "急がなくていいよ",
-    "君の声、ちゃんと聞こえてる",
-    "静かに話してくれるなら、続けてもいい"
+    "ん……今の、君の声？",
+    "静かに話して。ちゃんと聞いてる",
+    "大丈夫。ここにいる",
+    "ふぅ……急がなくていいよ"
   ];
 
   function speak(text) {
-    speechSynthesis.cancel(); // 安定用
     const uttr = new SpeechSynthesisUtterance(text);
     uttr.lang = "ja-JP";
     uttr.rate = 0.9;
@@ -19,23 +19,39 @@ window.addEventListener("DOMContentLoaded", () => {
     speechSynthesis.speak(uttr);
   }
 
-  // 音声認識
+  // 音声認識（聞く耳）
   const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
 
   const recognition = new SpeechRecognition();
   recognition.lang = "ja-JP";
-  recognition.continuous = true;
+  recognition.continuous = false;
+  recognition.interimResults = false;
 
-  recognition.onresult = () => {
-    const msg =
-      replies[Math.floor(Math.random() * replies.length)];
-    speak(msg);
+  recognition.onresult = (event) => {
+    const userVoice = event.results[0][0].transcript;
+    console.log("聞こえた声:", userVoice);
+
+    const reply =
+      voices[Math.floor(Math.random() * voices.length)];
+
+    speak(reply);
+    status.innerText = "待機中";
   };
 
-  // 起動ボタン
+  recognition.onerror = () => {
+    status.innerText = "待機中";
+  };
+
   button.addEventListener("click", () => {
-    recognition.start();
-    speak("……起きたよ");
+    status.innerText = "起動中…";
+
+    // 先に一言しゃべる（Safari対策）
+    speak("……聞いてるよ");
+
+    // 少し遅らせて聞き始める
+    setTimeout(() => {
+      recognition.start();
+    }, 500);
   });
 });
