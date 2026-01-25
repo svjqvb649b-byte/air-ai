@@ -1,3 +1,4 @@
+document.addEventListener("DOMContentLoaded", () => {
 const statusEl = document.getElementById("status");
 const logEl = document.getElementById("log");
 const tapBtn = document.getElementById("tap");
@@ -57,6 +58,7 @@ function startRecognition() {
     listening = true;
     statusEl.textContent = "待機中（エアって呼んで）";
   };
+  recognition.start();
 
   recognition.onresult = (event) => {
     const result = event.results[event.results.length - 1];
@@ -94,8 +96,6 @@ log(text);
 }
 
 tapBtn.addEventListener("click", () => {
-  if (!listening) {
-    startRecognition();
-// respond("起動したよ。");
-  }
+  startRecognition();
+  respond("起動したよ");
 });
