@@ -65,7 +65,6 @@ const isInterim = !result.isFinal;
     log("👂 " + text);
 
 if (
-  isInterim &&
   !called &&
   (
     text.includes("エ") ||
