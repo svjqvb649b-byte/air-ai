@@ -82,14 +82,11 @@ if (conversationMode && !isInterim) {
   respond(randomReply("listen"));
   called = false; // ← ★これを追加
 }
-  };
 
-  recognition.onend = () => {
-    if (listening) recognition.start();
-  };
+  //recognition.onend = () => {
+    //if (listening) recognition.start();
+//};
 
-  recognition.start();
-}
 
 function respond(text) {
 log(text);
