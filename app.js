@@ -100,6 +100,6 @@ log(text);
 tapBtn.addEventListener("click", () => {
   if (!listening) {
     startRecognition();
-    respond("起動したよ。");
+// respond("起動したよ。");
   }
 });
