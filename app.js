@@ -2,23 +2,24 @@ window.addEventListener("DOMContentLoaded", () => {
   const status = document.getElementById("status");
   const button = document.getElementById("tap");
 
-  let running = false;
+  const voices = [
+    "……呼んだ？",
+    "ふぁ……今ちょっと眠い",
+    "急がなくていいよ",
+    "君の声、嫌いじゃない",
+    "静かにしてくれるなら話すけど"
+  ];
 
-  const speak = (text) => {
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "ja-JP";
-    speechSynthesis.speak(u);
-  };
+  function speak(text) {
+    const uttr = new SpeechSynthesisUtterance(text);
+    uttr.lang = "ja-JP";
+    uttr.rate = 0.9;
+    uttr.pitch = 0.8;
+    speechSynthesis.speak(uttr);
+  }
 
   button.addEventListener("click", () => {
-    running = !running;
-
-    if (running) {
-      status.textContent = "起動中…";
-      speak("こんにちは。エアです。");
-    } else {
-      status.textContent = "停止しました";
-      speak("停止します。");
-    }
+    const msg = voices[Math.floor(Math.random() * voices.length)];
+    speak(msg);
   });
 });
