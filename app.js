@@ -1,1 +1,3 @@
-alert("app.js 読み込まれた");
+document.getElementById("tap").addEventListener("click", () => {
+  alert("タップされた");
+});
