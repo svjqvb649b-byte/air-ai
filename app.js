@@ -96,6 +96,6 @@ log(text);
 }
 
 tapBtn.addEventListener("click", () => {
-  startRecognition();
-  respond("起動したよ");
+  log("起動したよ");   // ← 表示だけ
+  startRecognition(); // ← 音声認識開始
 });
