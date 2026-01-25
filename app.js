@@ -93,7 +93,7 @@ if (conversationMode && !isInterim) {
 }
 
 function respond(text) {
-  log("🤖 " + text);
+log(text);
   speak(text);
 }
 
