@@ -58,6 +58,7 @@ function startRecognition() {
     statusEl.textContent = "待機中（エアって呼んで）";
   };
 
+ recognition.start(); // ← ★この1行を追加
   recognition.onresult = (event) => {
     const result = event.results[event.results.length - 1];
 const text = result[0].transcript;
