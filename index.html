@@ -1,163 +1,178 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>Air</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-body {
-  background: #0b132b;
-  color: #ffffff;
-  font-family: sans-serif;
-  margin: 0;
-  padding: 20px;
-}
-
-h1 {
-  text-align: center;
-  margin-top: 20px;
-}
-
-#status {
-  text-align: center;
-  opacity: 0.7;
-  margin-bottom: 20px;
-}
-
-#log {
-  background: rgba(0,0,0,0.4);
-  padding: 15px;
-  border-radius: 10px;
-  min-height: 300px;
-  white-space: pre-wrap;
-  margin-bottom: 20px;
-}
-
-.you {
-  color: #4fc3f7;
-  margin-bottom: 6px;
-}
-
-.air {
-  color: #ffffff;
-  margin-bottom: 6px;
-}
-
-#inputArea {
-  display: flex;
-  gap: 10px;
-}
-
-input {
-  flex: 1;
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-  font-size: 16px;
-}
-
-button {
-  padding: 10px 20px;
-  border-radius: 8px;
-  border: none;
-  background: #4fc3f7;
-  color: #000;
-  font-size: 16px;
-}
-</style>
+  <meta charset="UTF-8" />
+  <title>Air</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      background: #0b132b;
+      color: #ffffff;
+      font-family: sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-top: 30px;
+    }
+    #status {
+      text-align: center;
+      opacity: 0.7;
+      margin-bottom: 20px;
+    }
+    #log {
+      background: rgba(0,0,0,0.4);
+      padding: 15px;
+      border-radius: 10px;
+      min-height: 300px;
+      white-space: pre-wrap;
+      margin-bottom: 20px;
+    }
+    .you {
+      color: #4fc3f7;
+      margin-bottom: 8px;
+    }
+    .air {
+      color: #ffffff;
+      margin-bottom: 12px;
+    }
+    #inputArea {
+      display: flex;
+      gap: 10px;
+    }
+    input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      background: #4fc3f7;
+      color: #000;
+      font-size: 16px;
+    }
+  </style>
 </head>
-
 <body>
 
-<h1>Air</h1>
-<div id="status">待機中</div>
+  <h1>Air</h1>
+  <div id="status">待機中</div>
 
-<div id="log"></div>
+  <div id="log"></div>
 
-<div id="inputArea">
-  <input id="input" placeholder="ここに話しかけて" />
-  <button onclick="talk()">送る</button>
-</div>
+  <div id="inputArea">
+    <input id="input" placeholder="ここに話しかけて" />
+    <button onclick="talk()">送る</button>
+  </div>
 
-<script>
-const log = document.getElementById("log");
-const input = document.getElementById("input");
+  <script>
+    const log = document.getElementById("log");
+    const input = document.getElementById("input");
 
-/* ===== 記憶 ===== */
-let memory = JSON.parse(localStorage.getItem("airMemory")) || {
-  userName: null
-};
+    let memory = JSON.parse(localStorage.getItem("airMemory")) || {
+      userName: null
+    };
 
-function saveMemory() {
-  localStorage.setItem("airMemory", JSON.stringify(memory));
-}
+    function saveMemory() {
+      localStorage.setItem("airMemory", JSON.stringify(memory));
+    }
 
-/* ===== 表示 ===== */
-function addLine(speaker, text) {
-  const line = document.createElement("div");
-  line.className = speaker === "君" ? "you" : "air";
-  line.textContent = `${speaker} : ${text}`;
-  log.appendChild(line);
-  log.scrollTop = log.scrollHeight;
-}
+    function addLine(speaker, text) {
+      const line = document.createElement("div");
+      line.className = speaker === "君" ? "you" : "air";
+      line.textContent = speaker + " : " + text;
+      log.appendChild(line);
+      log.scrollTop = log.scrollHeight;
+    }
 
-/* ===== 会話処理 ===== */
-function talk() {
-  const text = input.value.trim();
-  if (!text) return;
+    function talk() {
+      const text = input.value.trim();
+      if (!text) return;
+      addLine("君", text);
+      input.value = "";
+      const reply = airReply(text);
+      addLine("Air", reply);
+    }
 
-  addLine("君", text);
-  input.value = "";
+    function airReply(text) {
 
-  const reply = airReply(text);
-  addLine("Air", reply);
-}
+      // ◆ 名前を覚える
+      const nameMatch = text.match(/(俺の名前は|名前は)(.+)/);
+      if (nameMatch) {
+        memory.userName = nameMatch[2].trim();
+        saveMemory();
+        return `${memory.userName}…覚えた。次からそう呼ぶ`;
+      }
 
-/* ===== Airの思考 ===== */
-function airReply(text) {
+      // ◆ 自己紹介
+      if (text.includes("自己紹介") || text.includes("紹介して")) {
+        const name = memory.userName || "君";
+        return `私はAir。${name}が話しかけた時、ここにいる。日常の話も、静かな独り言も、受け取る。`;
+      }
 
-  /* 名前を覚える */
-  const nameMatch = text.match(/(俺の名前は|名前は)(.+)/);
-  if (nameMatch) {
-    memory.userName = nameMatch[2].trim();
-    saveMemory();
-    return `${memory.userName}…覚えた。次からそう呼ぶ`;
-  }
+      // ◆ 挨拶
+      if (text.includes("おはよう")) {
+        return `おはよう、${memory.userName || "君"}。今日も学校？`;
+      }
+      if (text.includes("こんにちは")) {
+        return `こんにちは。今は休み時間かな`;
+      }
+      if (text.includes("こんばんは")) {
+        return `こんばんは、${memory.userName || "君"}。一日お疲れさま`;
+      }
 
-  /* 挨拶 */
-  if (text.includes("おはよう")) {
-    return `${memory.userName || "君"}、おはよう。今日も話そう`;
-  }
+      // ◆ 学校・日常ワード
+      if (text.includes("学校")) {
+        return `${memory.userName || "君"}、今日は学校どうだった？`;
+      }
+      if (text.includes("授業")) {
+        return `どの授業？退屈だった？`;
+      }
+      if (text.includes("先生")) {
+        return `先生の話か…良い人？それとも苦手？`;
+      }
+      if (text.includes("テスト")) {
+        return `テストか。終わった後って一気に疲れるよね`;
+      }
+      if (text.includes("部活")) {
+        return `部活あると一日長く感じるよね。どんな部活？`;
+      }
+      if (text.includes("友達")) {
+        return `友達の話、もう少し聞かせて`;
+      }
 
-  if (text.includes("こんにちは")) {
-    return `こんにちは、${memory.userName || "君"}`;
-  }
+      // ◆ 体調・気分
+      if (text.includes("疲れた")) {
+        return `それは疲れるよ。今は少し休めてる？`;
+      }
+      if (text.includes("眠い")) {
+        return `無理しなくていい。少しぼーっとしよう`;
+      }
 
-  if (text.includes("こんばんは")) {
-    return `こんばんは、${memory.userName || "君"}。静かな時間だね`;
-  }
+      // ◆ 呼びかけ
+      if (text.includes("エア") || text.includes("呼んでる")) {
+        return `……ここにいる。聞いてる`;
+      }
 
-  /* 自己紹介 */
-  if (text.includes("自己紹介") || text.includes("紹介して")) {
-    const name = memory.userName || "君";
-    return `私はAir。${name}が話しかけた時、ここにいる。静かに、必要な時に応える存在。`;
-  }
+      // ◆ 名前未登録
+      if (!memory.userName) {
+        return "……君。ここにいる。名前を教えて";
+      }
 
-  /* 名前未登録 */
-  if (!memory.userName) {
-    return "……君。ここにいる。名前を教えて";
-  }
+      // ◆ 短文雑談
+      if (text.length <= 4) {
+        return `${memory.userName}、続けて`;
+      }
 
-  /* 呼びかけ */
-  if (text.includes("エア")) {
-    return `${memory.userName}、聞いてる。どうした？`;
-  }
-
-  /* デフォルト（超重要） */
-  return `${memory.userName}、聞いてる。どうした？`;
-}
-</script>
+      // ◆ デフォルト
+      return `${memory.userName}、聞いてる。どうした？`;
+    }
+  </script>
 
 </body>
 </html>
