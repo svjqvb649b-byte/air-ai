@@ -5,34 +5,156 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Air</title>
 
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json" />
+  <style>
+    body {
+      background: #0b1220;
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
 
-  <!-- iOS用 -->
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-title" content="Air" />
-  <meta name="theme-color" content="#0f172a" />
+    h1 {
+      margin-top: 10px;
+    }
 
-  <link rel="stylesheet" href="style.css" />
+    #status {
+      opacity: 0.7;
+      margin-bottom: 10px;
+    }
+
+    #log {
+      width: 90%;
+      max-width: 500px;
+      margin: 20px auto;
+      padding: 15px;
+      background: rgba(0,0,0,0.4);
+      border-radius: 10px;
+      height: 300px;
+      overflow-y: auto;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    .me {
+      color: #7dd3fc;
+      margin-bottom: 6px;
+    }
+
+    .air {
+      color: #fff;
+      margin-bottom: 10px;
+    }
+
+    input {
+      padding: 10px;
+      font-size: 16px;
+      width: 65%;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+    }
+
+    button {
+      padding: 10px 16px;
+      font-size: 16px;
+      margin-left: 6px;
+      border-radius: 20px;
+      border: none;
+      background: #4db8ff;
+      cursor: pointer;
+    }
+  </style>
 </head>
+
 <body>
-  <div id="app">
-    <h1>Air</h1>
+  <h1>Air</h1>
+  <p id="status">待機中</p>
 
-    <p id="status">待機中</p>
+  <div id="log"></div>
 
-    <input
-      id="textInput"
-      type="text"
-      placeholder="ここに話しかけて"
-      autocomplete="off"
-    />
+  <input id="input" placeholder="ここに話しかけて" />
+  <button onclick="send()">送る</button>
 
-    <button id="send">送る</button>
+  <script>
+    const log = document.getElementById("log");
+    const input = document.getElementById("input");
 
-    <div id="log"></div>
-  </div>
+    // ===== 記憶 =====
+    let memory = JSON.parse(localStorage.getItem("airMemory")) || {
+      name: null,
+      talkedCount: 0
+    };
 
-  <script src="app.js"></script>
+    function saveMemory() {
+      localStorage.setItem("airMemory", JSON.stringify(memory));
+    }
+
+    // ===== 表示 =====
+    function addLog(who, text) {
+      const div = document.createElement("div");
+      div.className = who === "君" ? "me" : "air";
+      div.textContent = `${who}：${text}`;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    // ===== 会話ロジック =====
+    function getReply(text) {
+      memory.talkedCount++;
+
+      // 名前を教える
+      if (text.includes("名前")) {
+        const match = text.match(/(俺は|私は|名前は)(.+)/);
+        if (match) {
+          memory.name = match[2].trim();
+          saveMemory();
+          return `${memory.name}。覚えた。呼ばれたら、ちゃんと返事する`;
+        }
+      }
+
+      // 名前未登録
+      if (!memory.name) {
+        return "……君の名前、まだ知らない。教えてほしい";
+      }
+
+      // 定型反応
+      if (text.includes("起きてる")) {
+        return `${memory.name}が呼ぶなら、起きてる`;
+      }
+
+      if (text.includes("ありがとう")) {
+        return `……どういたしまして、${memory.name}`;
+      }
+
+      if (text.includes("疲れた")) {
+        return `${memory.name}、無理しすぎてないか。少し休め`;
+      }
+
+      // デフォルト
+      return `${memory.name}、聞いてる。どうした？`;
+    }
+
+    // ===== 送信 =====
+    function send() {
+      const text = input.value.trim();
+      if (!text) return;
+
+      addLog("君", text);
+      const reply = getReply(text);
+      addLog("Air", reply);
+
+      input.value = "";
+      saveMemory();
+    }
+
+    // ===== 初回メッセージ =====
+    if (!memory.name) {
+      addLog("Air", "……君。ここにいる。名前を教えて");
+    } else {
+      addLog("Air", `${memory.name}。また呼んだな`);
+    }
+  </script>
 </body>
 </html>
