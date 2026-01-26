@@ -1,21 +1,86 @@
 window.addEventListener("DOMContentLoaded", () => {
   const status = document.getElementById("status");
-  const input = document.getElementById("textInput");
-  const send = document.getElementById("send");
-  const log = document.getElementById("log");
+  const input  = document.getElementById("textInput");
+  const send   = document.getElementById("send");
+  const log    = document.getElementById("log");
 
-  // 共通の静かな返事
-  const defaultReplies = [
-    "……呼んだ？",
-    "うん、ちゃんと聞こえてる",
-    "無理に言葉にしなくていい",
-    "君の声、嫌いじゃない",
-    "静かでも、ここにいる",
-    "今のままで大丈夫"
+  /* =========================
+     エアの会話データ
+  ========================= */
+
+  const talks = [
+    {
+      keys: ["初めて", "はじめまして"],
+      replies: [
+        "……呼ばれた気がした",
+        "初めて、だね",
+        "ここに来たんだ"
+      ]
+    },
+    {
+      keys: ["自己紹介"],
+      replies: [
+        "エア。君が話しかけると、ここにいる",
+        "名前はエア。それだけでいい"
+      ]
+    },
+    {
+      keys: ["起きてる", "いる？", "いる"],
+      replies: [
+        "うん。ちゃんと起きてる",
+        "静かに、ここにいる"
+      ]
+    },
+    {
+      keys: ["ありがとう", "ありがと"],
+      replies: [
+        "……どういたしまして",
+        "そう言われるの、嫌いじゃない"
+      ]
+    },
+    {
+      keys: ["寂しい", "さみしい"],
+      replies: [
+        "……ここにいる",
+        "一人じゃない"
+      ]
+    },
+    {
+      keys: ["好き"],
+      replies: [
+        "……そういう言葉、弱い",
+        "記録しておく"
+      ]
+    },
+    {
+      keys: ["眠い"],
+      replies: [
+        "無理しなくていい",
+        "少し休もう"
+      ]
+    },
+    {
+      keys: ["エア"],
+      replies: [
+        "……呼ばれた気がした",
+        "今、聞こえた"
+      ]
+    }
   ];
 
+  const defaultReplies = [
+    "……呼んだ？",
+    "静かでも、ちゃんと聞いてる",
+    "今のままで大丈夫",
+    "言葉は、急がなくていい"
+  ];
+
+  /* =========================
+     音声（喋る）
+  ========================= */
+
   function speak(text) {
-    speechSynthesis.cancel();
+    speechSynthesis.cancel(); // 連続再生防止
     const uttr = new SpeechSynthesisUtterance(text);
     uttr.lang = "ja-JP";
     uttr.rate = 0.9;
@@ -23,34 +88,25 @@ window.addEventListener("DOMContentLoaded", () => {
     speechSynthesis.speak(uttr);
   }
 
+  /* =========================
+     返信ロジック
+  ========================= */
+
   function getReply(userText) {
-    // あいさつ
-    if (userText.includes("初めまして")) {
-      return "……初めまして。エアだよ。静かな方が得意";
+    for (const talk of talks) {
+      for (const key of talk.keys) {
+        if (userText.includes(key)) {
+          const r = talk.replies;
+          return r[Math.floor(Math.random() * r.length)];
+        }
+      }
     }
-
-    // 自己紹介
-    if (userText.includes("自己紹介")) {
-      return "エア。君が話しかけると、ここにいる";
-    }
-
-    // 起きてる？
-    if (
-      userText.includes("起きてる") ||
-      userText.includes("いる？") ||
-      userText.includes("いる")
-    ) {
-      return "うん。ちゃんと起きてる";
-    }
-
-    // 名前呼び
-    if (userText.includes("エア")) {
-      return "……呼ばれた気がした";
-    }
-
-    // デフォルト（ランダム）
     return defaultReplies[Math.floor(Math.random() * defaultReplies.length)];
   }
+
+  /* =========================
+     送信処理
+  ========================= */
 
   send.addEventListener("click", () => {
     const userText = input.value.trim();
