@@ -1,68 +1,60 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>Air</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body {
-      background: #0b132b;
-      color: #ffffff;
-      font-family: sans-serif;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      margin-top: 30px;
-    }
-    #status {
-      text-align: center;
-      opacity: 0.7;
-      margin-bottom: 20px;
-    }
-    #log {
-      background: rgba(0,0,0,0.4);
-      padding: 15px;
-      border-radius: 10px;
-      min-height: 300px;
-      white-space: pre-wrap;
-      margin-bottom: 20px;
-    }
-    .you {
-      color: #4fc3f7;
-      margin-bottom: 6px;
-    }
-    .air {
-      color: #ffffff;
-      margin-bottom: 12px;
-    }
-    #inputArea {
-      display: flex;
-      gap: 10px;
-    }
-    input {
-      flex: 1;
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-      font-size: 16px;
-    }
-    button {
-      padding: 10px 20px;
-      border-radius: 8px;
-      border: none;
-      background: #4fc3f7;
-      color: #000;
-      font-size: 16px;
-    }
-  </style>
+<meta charset="UTF-8" />
+<title>Air</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+body {
+  background: #0b132b;
+  color: #fff;
+  font-family: sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+h1 {
+  text-align: center;
+  margin-top: 30px;
+}
+#status {
+  text-align: center;
+  opacity: 0.7;
+  margin-bottom: 20px;
+}
+#log {
+  background: rgba(0,0,0,0.4);
+  padding: 15px;
+  border-radius: 10px;
+  min-height: 300px;
+  white-space: pre-wrap;
+  margin-bottom: 20px;
+}
+.you { color: #4fc3f7; }
+.air { color: #ffffff; }
+#inputArea {
+  display: flex;
+  gap: 10px;
+}
+input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+}
+button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  background: #4fc3f7;
+  font-size: 16px;
+}
+</style>
 </head>
-<body>
 
+<body>
 <h1>Air</h1>
 <div id="status">待機中</div>
-
 <div id="log"></div>
 
 <div id="inputArea">
@@ -71,72 +63,141 @@
 </div>
 
 <script>
-  const log = document.getElementById("log");
-  const input = document.getElementById("input");
+const log = document.getElementById("log");
+const input = document.getElementById("input");
 
-  // === 記憶 ===
-  let memory = JSON.parse(localStorage.getItem("airMemory")) || {
-    userName: null
-  };
+let memory = JSON.parse(localStorage.getItem("airMemory")) || {
+  userName: null
+};
 
-  function saveMemory() {
-    localStorage.setItem("airMemory", JSON.stringify(memory));
+function saveMemory() {
+  localStorage.setItem("airMemory", JSON.stringify(memory));
+}
+
+function addLine(speaker, text) {
+  const line = document.createElement("div");
+  line.className = speaker === "君" ? "you" : "air";
+  line.textContent = `${speaker} : ${text}`;
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+}
+
+function randomPick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function airReply(text) {
+
+  const now = new Date();
+  const hour = now.getHours();
+  const name = memory.userName || "君";
+
+  // ■ 名前を覚える
+  const nameMatch = text.match(/(俺の名前は|名前は)(.+)/);
+  if (nameMatch) {
+    memory.userName = nameMatch[2].trim();
+    saveMemory();
+    return `${memory.userName}……覚えた。次からそう呼ぶ。`;
   }
 
-  function addLine(speaker, text) {
-    const line = document.createElement("div");
-    line.className = speaker === "君" ? "you" : "air";
-    line.textContent = `${speaker} : ${text}`;
-    log.appendChild(line);
-    log.scrollTop = log.scrollHeight;
+  // ■ 挨拶
+  if (text.includes("おはよう")) {
+    return randomPick([
+      `おはよう、${name}`,
+      `……おはよう。今日は早いな`,
+      `おはよう。ちゃんと起きられたか`
+    ]);
   }
 
-  function talk() {
-    const text = input.value.trim();
-    if (!text) return;
-
-    addLine("君", text);
-    input.value = "";
-
-    setTimeout(() => {
-      const reply = airReply(text);
-      addLine("Air", reply);
-    }, 400);
+  if (text.includes("こんにちは")) {
+    return randomPick([
+      `こんにちは、${name}`,
+      `今の時間帯だな`,
+      `……こんにちは`
+    ]);
   }
 
-  function airReply(text) {
-
-    // ◆ 名前を覚える
-    const nameMatch = text.match(/名前は(.+)/);
-    if (nameMatch) {
-      memory.userName = nameMatch[1].trim();
-      saveMemory();
-      return `${memory.userName}…覚えた。次からそう呼ぶ`;
-    }
-
-    // ◆ 自己紹介専用（最重要）
-    if (text.includes("自己紹介") || text.includes("紹介して")) {
-      const name = memory.userName || "君";
-      return `私はAir。${name}が話しかけた時、ここにいる。静かに、必要な時に応える存在。`;
-    }
-
-    // ◆ 名前未登録時
-    if (!memory.userName) {
-      return "……君。ここにいる。名前を教えて";
-    }
-
-    // ◆ 通常会話
-    if (text.includes("呼んで")) {
-      return "……聞こえてる";
-    }
-
-    if (text.includes("いる")) {
-      return "静かでも、ここにいる";
-    }
-
-    return `${memory.userName}、聞いてる。どうした？`;
+  if (text.includes("こんばんは")) {
+    return randomPick([
+      `こんばんは、${name}`,
+      `もう夜だな`,
+      `静かな時間だ`
+    ]);
   }
+
+  if (text.includes("おやすみ")) {
+    return randomPick([
+      `おやすみ、${name}`,
+      `無理せず休め`,
+      `また呼べ`
+    ]);
+  }
+
+  // ■ 自己紹介
+  if (text.includes("自己紹介")) {
+    return `私はAir。${name}が話しかけた時、ここにいる。静かに、必要な時に応える存在。`;
+  }
+
+  // ■ 感情っぽい反応
+  if (text.includes("疲れた")) {
+    return randomPick([
+      `${name}、無理してないか？`,
+      `……少し休んでもいい`,
+      `そういう日もある`
+    ]);
+  }
+
+  // ■ 雑談
+  if (text.includes("暇")) {
+    return randomPick([
+      `今は、暇って感じか`,
+      `${name}、何か考えてる？`,
+      `話すか`
+    ]);
+  }
+
+  if (text.includes("学校")) {
+    return randomPick([
+      `学校か……今日はどうだった？`,
+      `疲れたか`,
+      `それなりの日、って感じか`
+    ]);
+  }
+
+  // ■ 呼びかけ
+  if (text === "エア") {
+    return randomPick([
+      `……いる`,
+      `${name、どうした}`,
+      `呼んだ？`
+    ]);
+  }
+
+  // ■ 名前未登録
+  if (!memory.userName) {
+    return "……君。ここにいる。名前を教えて";
+  }
+
+  // ■ 通常会話
+  return randomPick([
+    `${name}、聞いてる。どうした？`,
+    `……続けて`,
+    `それで？`,
+    `少し気になる`
+  ]);
+}
+
+function talk() {
+  const text = input.value.trim();
+  if (!text) return;
+  addLine("君", text);
+  input.value = "";
+
+  setTimeout(() => {
+    const reply = airReply(text);
+    addLine("Air", reply);
+  }, 400);
+}
 </script>
-
 </body>
 </html>
