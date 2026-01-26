@@ -4,170 +4,139 @@
   <meta charset="UTF-8" />
   <title>Air</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <style>
     body {
-      background: #0b1220;
-      color: #fff;
+      background: #0b132b;
+      color: #ffffff;
       font-family: sans-serif;
-      text-align: center;
       margin: 0;
-      padding: 0;
+      padding: 20px;
     }
-
     h1 {
+      text-align: center;
       margin-top: 30px;
-      font-size: 36px;
     }
-
     #status {
+      text-align: center;
       opacity: 0.7;
       margin-bottom: 20px;
     }
-
     #log {
-      width: 90%;
-      max-width: 500px;
-      margin: 0 auto 20px;
-      padding: 15px;
       background: rgba(0,0,0,0.4);
-      border-radius: 12px;
-      height: 320px;
-      overflow-y: auto;
-      text-align: left;
-      box-sizing: border-box;
+      padding: 15px;
+      border-radius: 10px;
+      min-height: 300px;
+      white-space: pre-wrap;
+      margin-bottom: 20px;
     }
-
     .you {
-      color: #6bd4ff;
-      margin-bottom: 8px;
+      color: #4fc3f7;
+      margin-bottom: 6px;
     }
-
     .air {
-      color: #fff;
+      color: #ffffff;
       margin-bottom: 12px;
     }
-
     #inputArea {
       display: flex;
-      justify-content: center;
-      margin-bottom: 30px;
+      gap: 10px;
     }
-
     input {
-      width: 65%;
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 20px;
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
       border: none;
-      outline: none;
+      font-size: 16px;
     }
-
     button {
-      margin-left: 8px;
-      padding: 12px 18px;
-      font-size: 16px;
-      border-radius: 20px;
+      padding: 10px 20px;
+      border-radius: 8px;
       border: none;
-      background: #4db8ff;
+      background: #4fc3f7;
       color: #000;
+      font-size: 16px;
     }
   </style>
 </head>
-
 <body>
-  <h1>Air</h1>
-  <div id="status">待機中</div>
 
-  <div id="log"></div>
+<h1>Air</h1>
+<div id="status">待機中</div>
 
-  <div id="inputArea">
-    <input id="input" placeholder="ここに話しかけて" autocomplete="off" />
-    <button onclick="send()">送る</button>
-  </div>
+<div id="log"></div>
 
-  <script>
-    const log = document.getElementById("log");
-    const input = document.getElementById("input");
+<div id="inputArea">
+  <input id="input" placeholder="ここに話しかけて" />
+  <button onclick="talk()">送る</button>
+</div>
 
-    // ===== 記憶 =====
-    let memory = JSON.parse(localStorage.getItem("airMemory")) || {
-      name: null,
-      talkedCount: 0
-    };
+<script>
+  const log = document.getElementById("log");
+  const input = document.getElementById("input");
 
-    function saveMemory() {
-      localStorage.setItem("airMemory", JSON.stringify(memory));
-    }
+  // === 記憶 ===
+  let memory = JSON.parse(localStorage.getItem("airMemory")) || {
+    userName: null
+  };
 
-    // ===== 表示 =====
-    function addLog(type, text) {
-      const div = document.createElement("div");
-      div.className = type === "you" ? "you" : "air";
-      div.textContent = (type === "you" ? "君: " : "Air: ") + text;
-      log.appendChild(div);
-      log.scrollTop = log.scrollHeight;
-    }
+  function saveMemory() {
+    localStorage.setItem("airMemory", JSON.stringify(memory));
+  }
 
-    // ===== 返答ロジック =====
-    function getReply(text) {
-      memory.talkedCount++;
+  function addLine(speaker, text) {
+    const line = document.createElement("div");
+    line.className = speaker === "君" ? "you" : "air";
+    line.textContent = `${speaker} : ${text}`;
+    log.appendChild(line);
+    log.scrollTop = log.scrollHeight;
+  }
 
-      // --- 名前認識（自然文対応） ---
-      if (
-        text.includes("名前") ||
-        text.includes("俺") ||
-        text.includes("呼んで")
-      ) {
-        const match = text.match(/(名前は|俺は|俺の名前は|って呼んで)(.+)/);
-        if (match) {
-          memory.name = match[2].trim();
-          saveMemory();
-          return `${memory.name}…覚えた。次からそう呼ぶ`;
-        }
-      }
+  function talk() {
+    const text = input.value.trim();
+    if (!text) return;
 
-      // --- 名前未登録 ---
-      if (!memory.name) {
-        return "……君の名前、まだ知らない。教えてほしい";
-      }
+    addLine("君", text);
+    input.value = "";
 
-      // --- 普通の会話 ---
-      if (text.includes("起きて")) {
-        return `${memory.name}が呼ぶなら、起きてる`;
-      }
+    setTimeout(() => {
+      const reply = airReply(text);
+      addLine("Air", reply);
+    }, 400);
+  }
 
-      if (text.includes("ありがとう")) {
-        return `……どういたしまして、${memory.name}`;
-      }
+  function airReply(text) {
 
-      if (text.includes("疲れた")) {
-        return `${memory.name}、無理しすぎてない？ 少し休もう`;
-      }
-
-      // --- デフォルト ---
-      return `${memory.name}、聞いてる。どうした？`;
-    }
-
-    // ===== 送信 =====
-    function send() {
-      const text = input.value.trim();
-      if (!text) return;
-
-      addLog("you", text);
-      const reply = getReply(text);
-      addLog("air", reply);
-
-      input.value = "";
+    // ◆ 名前を覚える
+    const nameMatch = text.match(/名前は(.+)/);
+    if (nameMatch) {
+      memory.userName = nameMatch[1].trim();
       saveMemory();
+      return `${memory.userName}…覚えた。次からそう呼ぶ`;
     }
 
-    // ===== 初回メッセージ =====
-    if (!memory.name) {
-      addLog("air", "……君。ここにいる。名前を教えて");
-    } else {
-      addLog("air", `${memory.name}。また呼んだね`);
+    // ◆ 自己紹介専用（最重要）
+    if (text.includes("自己紹介") || text.includes("紹介して")) {
+      const name = memory.userName || "君";
+      return `私はAir。${name}が話しかけた時、ここにいる。静かに、必要な時に応える存在。`;
     }
-  </script>
+
+    // ◆ 名前未登録時
+    if (!memory.userName) {
+      return "……君。ここにいる。名前を教えて";
+    }
+
+    // ◆ 通常会話
+    if (text.includes("呼んで")) {
+      return "……聞こえてる";
+    }
+
+    if (text.includes("いる")) {
+      return "静かでも、ここにいる";
+    }
+
+    return `${memory.userName}、聞いてる。どうした？`;
+  }
+</script>
+
 </body>
 </html>
