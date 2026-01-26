@@ -1,14 +1,17 @@
 window.addEventListener("DOMContentLoaded", () => {
   const status = document.getElementById("status");
-  const button = document.getElementById("tap");
+  const input = document.getElementById("textInput");
+  const send = document.getElementById("send");
+  const log = document.getElementById("log");
 
-  // シエスタ風ボイス
+  // シエスタ風・内容に依存しない返事
   const replies = [
     "……呼んだ？",
-    "ふぅ……今の声、聞こえた",
-    "無理に喋らなくていい",
+    "うん、ちゃんと聞こえてる",
+    "無理に言葉にしなくていい",
     "君の声、嫌いじゃない",
-    "静かでも、ちゃんといる"
+    "静かでも、ここにいる",
+    "今のままで大丈夫"
   ];
 
   function speak(text) {
@@ -19,30 +22,27 @@ window.addEventListener("DOMContentLoaded", () => {
     speechSynthesis.speak(uttr);
   }
 
-  // 音声認識
-  const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
+  send.addEventListener("click", () => {
+    const userText = input.value.trim();
+    if (!userText) return;
 
-  const recognition = new SpeechRecognition();
-  recognition.lang = "ja-JP";
-  recognition.continuous = false;
-  recognition.interimResults = false;
+    // ログ表示（君の言葉）
+    const userLine = document.createElement("div");
+    userLine.textContent = "君：「" + userText + "」";
+    log.appendChild(userLine);
 
-  recognition.onstart = () => {
+    input.value = "";
     status.textContent = "……";
-  };
 
-  recognition.onresult = () => {
-    const msg = replies[Math.floor(Math.random() * replies.length)];
-    speak(msg);
-    status.textContent = "待機中";
-  };
+    setTimeout(() => {
+      const msg = replies[Math.floor(Math.random() * replies.length)];
 
-  recognition.onerror = () => {
-    status.textContent = "待機中";
-  };
+      const airLine = document.createElement("div");
+      airLine.textContent = "Air：「" + msg + "」";
+      log.appendChild(airLine);
 
-  button.addEventListener("click", () => {
-    recognition.start();
+      speak(msg);
+      status.textContent = "待機中";
+    }, 800);
   });
 });
