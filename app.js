@@ -15,6 +15,7 @@ window.addEventListener("DOMContentLoaded", () => {
   ];
 
   function speak(text) {
+    speechSynthesis.cancel(); // ← ★ここに追加
     const uttr = new SpeechSynthesisUtterance(text);
     uttr.lang = "ja-JP";
     uttr.rate = 0.9;
