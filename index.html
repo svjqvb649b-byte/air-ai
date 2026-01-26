@@ -2,30 +2,37 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Air</title>
 
-<title>Air</title>
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
 
-<!-- PWA -->
-<link rel="manifest" href="manifest.json" />
+  <!-- iOS用 -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Air" />
+  <meta name="theme-color" content="#0f172a" />
 
-<!-- iOS用 -->
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="Air" />
-
-<!-- テーマカラー -->
-<meta name="theme-color" content="#0f172a" />
-
-<link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="app">
     <h1>Air</h1>
+
     <p id="status">待機中</p>
+
+    <input
+      id="textInput"
+      type="text"
+      placeholder="ここに話しかけて"
+      autocomplete="off"
+    />
+
+    <button id="send">送る</button>
+
     <div id="log"></div>
-    <button id="tap">タップして起動</button>
   </div>
-<script src="app.js?v=2"></script>
+
+  <script src="app.js"></script>
 </body>
 </html>
