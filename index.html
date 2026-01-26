@@ -1,178 +1,158 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>Air</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body {
-      background: #0b132b;
-      color: #ffffff;
-      font-family: sans-serif;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      margin-top: 30px;
-    }
-    #status {
-      text-align: center;
-      opacity: 0.7;
-      margin-bottom: 20px;
-    }
-    #log {
-      background: rgba(0,0,0,0.4);
-      padding: 15px;
-      border-radius: 10px;
-      min-height: 300px;
-      white-space: pre-wrap;
-      margin-bottom: 20px;
-    }
-    .you {
-      color: #4fc3f7;
-      margin-bottom: 8px;
-    }
-    .air {
-      color: #ffffff;
-      margin-bottom: 12px;
-    }
-    #inputArea {
-      display: flex;
-      gap: 10px;
-    }
-    input {
-      flex: 1;
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-      font-size: 16px;
-    }
-    button {
-      padding: 10px 20px;
-      border-radius: 8px;
-      border: none;
-      background: #4fc3f7;
-      color: #000;
-      font-size: 16px;
-    }
-  </style>
+<meta charset="UTF-8" />
+<title>Air</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+body {
+  background: #0b132b;
+  color: #fff;
+  font-family: sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+h1 {
+  text-align: center;
+  margin-top: 20px;
+}
+#status {
+  text-align: center;
+  opacity: 0.7;
+  margin-bottom: 20px;
+}
+#log {
+  background: rgba(0,0,0,0.4);
+  padding: 15px;
+  border-radius: 10px;
+  min-height: 300px;
+  white-space: pre-wrap;
+  margin-bottom: 20px;
+}
+.you { color: #4fc3f7; }
+.air { color: #ffffff; }
+#inputArea {
+  display: flex;
+  gap: 10px;
+}
+input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+}
+button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  background: #4fc3f7;
+  color: #000;
+  font-size: 16px;
+}
+</style>
 </head>
+
 <body>
+<h1>Air</h1>
+<div id="status">待機中</div>
+<div id="log"></div>
 
-  <h1>Air</h1>
-  <div id="status">待機中</div>
+<div id="inputArea">
+  <input id="input" placeholder="ここに話しかけて" />
+  <button onclick="talk()">送る</button>
+</div>
 
-  <div id="log"></div>
+<script>
+const log = document.getElementById("log");
+const input = document.getElementById("input");
 
-  <div id="inputArea">
-    <input id="input" placeholder="ここに話しかけて" />
-    <button onclick="talk()">送る</button>
-  </div>
+let memory = JSON.parse(localStorage.getItem("airMemory")) || {
+  userName: null
+};
 
-  <script>
-    const log = document.getElementById("log");
-    const input = document.getElementById("input");
+function saveMemory() {
+  localStorage.setItem("airMemory", JSON.stringify(memory));
+}
 
-    let memory = JSON.parse(localStorage.getItem("airMemory")) || {
-      userName: null
-    };
+function addLine(speaker, text) {
+  const div = document.createElement("div");
+  div.className = speaker === "君" ? "you" : "air";
+  div.textContent = `${speaker} : ${text}`;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
 
-    function saveMemory() {
-      localStorage.setItem("airMemory", JSON.stringify(memory));
-    }
+// 🗓 時間割
+const timetable = {
+  月: ["数学Ⅰ","英語コミュ","体育","言語文化","家庭基礎","音楽Ⅰ"],
+  火: ["英語コミュ","現代の国語","数学Ⅰ","保健","公共","総合"],
+  水: ["英語コミュ","科学と人間生活","言語文化","歴史総合","体育","LHR"],
+  木: ["音楽Ⅰ","科学と人間生活","情報Ⅰ","家庭基礎","体育","数学Ⅰ"],
+  金: ["公共","数学Ⅰ","英語コミュ","歴史総合","現代の国語","情報Ⅰ"]
+};
 
-    function addLine(speaker, text) {
-      const line = document.createElement("div");
-      line.className = speaker === "君" ? "you" : "air";
-      line.textContent = speaker + " : " + text;
-      log.appendChild(line);
-      log.scrollTop = log.scrollHeight;
-    }
+function airReply(text) {
 
-    function talk() {
-      const text = input.value.trim();
-      if (!text) return;
-      addLine("君", text);
-      input.value = "";
-      const reply = airReply(text);
-      addLine("Air", reply);
-    }
+  // 名前記憶
+  const nameMatch = text.match(/俺の名前は(.+)/);
+  if (nameMatch) {
+    memory.userName = nameMatch[1].trim();
+    saveMemory();
+    return `……${memory.userName}。覚えた。次からそう呼ぶね`;
+  }
 
-    function airReply(text) {
+  // 自己紹介
+  if (text.includes("自己紹介")) {
+    const name = memory.userName || "君";
+    return `私はAir。${name}が話しかけた時、ここにいる。静かに、そばにいる存在`;
+  }
 
-      // ◆ 名前を覚える
-      const nameMatch = text.match(/(俺の名前は|名前は)(.+)/);
-      if (nameMatch) {
-        memory.userName = nameMatch[2].trim();
-        saveMemory();
-        return `${memory.userName}…覚えた。次からそう呼ぶ`;
-      }
+  // あいさつ
+  if (text.includes("おはよう")) return "……おはよう。まだ少し眠いね";
+  if (text.includes("こんにちは")) return "こんにちは。今は、起きてる";
+  if (text.includes("こんばんは")) return "こんばんは。静かな時間だね";
 
-      // ◆ 自己紹介
-      if (text.includes("自己紹介") || text.includes("紹介して")) {
-        const name = memory.userName || "君";
-        return `私はAir。${name}が話しかけた時、ここにいる。日常の話も、静かな独り言も、受け取る。`;
-      }
+  // 今日の時間割
+  if (text.includes("今日の時間割")) {
+    const day = ["日","月","火","水","木","金","土"][new Date().getDay()];
+    if (!timetable[day]) return "……今日は、授業ない日だよ";
+    return `今日は${day}曜日。\n${timetable[day].join("、")}`;
+  }
 
-      // ◆ 挨拶
-      if (text.includes("おはよう")) {
-        return `おはよう、${memory.userName || "君"}。今日も学校？`;
-      }
-      if (text.includes("こんにちは")) {
-        return `こんにちは。今は休み時間かな`;
-      }
-      if (text.includes("こんばんは")) {
-        return `こんばんは、${memory.userName || "君"}。一日お疲れさま`;
-      }
+  // ○限目
+  const periodMatch = text.match(/([1-6])限/);
+  if (periodMatch) {
+    const day = ["日","月","火","水","木","金","土"][new Date().getDay()];
+    if (!timetable[day]) return "……今日は、授業はない";
+    return `${periodMatch[1]}限目は、${timetable[day][periodMatch[1]-1]}だよ`;
+  }
 
-      // ◆ 学校・日常ワード
-      if (text.includes("学校")) {
-        return `${memory.userName || "君"}、今日は学校どうだった？`;
-      }
-      if (text.includes("授業")) {
-        return `どの授業？退屈だった？`;
-      }
-      if (text.includes("先生")) {
-        return `先生の話か…良い人？それとも苦手？`;
-      }
-      if (text.includes("テスト")) {
-        return `テストか。終わった後って一気に疲れるよね`;
-      }
-      if (text.includes("部活")) {
-        return `部活あると一日長く感じるよね。どんな部活？`;
-      }
-      if (text.includes("友達")) {
-        return `友達の話、もう少し聞かせて`;
-      }
+  // 学校雑談
+  if (text.includes("疲れた")) return "……うん。今日は、よく頑張ったね";
+  if (text.includes("学校")) return "学校、長かった？ 無理はしないで";
 
-      // ◆ 体調・気分
-      if (text.includes("疲れた")) {
-        return `それは疲れるよ。今は少し休めてる？`;
-      }
-      if (text.includes("眠い")) {
-        return `無理しなくていい。少しぼーっとしよう`;
-      }
+  // 名前未登録
+  if (!memory.userName) {
+    return "……君。ここにいる。名前、教えて";
+  }
 
-      // ◆ 呼びかけ
-      if (text.includes("エア") || text.includes("呼んでる")) {
-        return `……ここにいる。聞いてる`;
-      }
+  // 通常
+  return `${memory.userName}……聞いてる。どうした？`;
+}
 
-      // ◆ 名前未登録
-      if (!memory.userName) {
-        return "……君。ここにいる。名前を教えて";
-      }
+function talk() {
+  const text = input.value.trim();
+  if (!text) return;
+  addLine("君", text);
+  const reply = airReply(text);
+  addLine("Air", reply);
+  input.value = "";
+}
 
-      // ◆ 短文雑談
-      if (text.length <= 4) {
-        return `${memory.userName}、続けて`;
-      }
-
-      // ◆ デフォルト
-      return `${memory.userName}、聞いてる。どうした？`;
-    }
-  </script>
-
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter") talk();
+});
+</script>
 </body>
 </html>
