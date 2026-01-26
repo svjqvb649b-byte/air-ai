@@ -3,12 +3,12 @@ window.addEventListener("DOMContentLoaded", () => {
   const button = document.getElementById("tap");
 
   // シエスタ風ボイス
-  const voices = [
+  const replies = [
     "……呼んだ？",
-    "ん……今の、君の声？",
-    "静かに話して。ちゃんと聞いてる",
-    "大丈夫。ここにいる",
-    "ふぅ……急がなくていいよ"
+    "ふぅ……今の声、聞こえた",
+    "無理に喋らなくていい",
+    "君の声、嫌いじゃない",
+    "静かでも、ちゃんといる"
   ];
 
   function speak(text) {
@@ -19,7 +19,7 @@ window.addEventListener("DOMContentLoaded", () => {
     speechSynthesis.speak(uttr);
   }
 
-  // 音声認識（聞く耳）
+  // 音声認識
   const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -28,30 +28,21 @@ window.addEventListener("DOMContentLoaded", () => {
   recognition.continuous = false;
   recognition.interimResults = false;
 
-  recognition.onresult = (event) => {
-    const userVoice = event.results[0][0].transcript;
-    console.log("聞こえた声:", userVoice);
+  recognition.onstart = () => {
+    status.textContent = "……";
+  };
 
-    const reply =
-      voices[Math.floor(Math.random() * voices.length)];
-
-    speak(reply);
-    status.innerText = "待機中";
+  recognition.onresult = () => {
+    const msg = replies[Math.floor(Math.random() * replies.length)];
+    speak(msg);
+    status.textContent = "待機中";
   };
 
   recognition.onerror = () => {
-    status.innerText = "待機中";
+    status.textContent = "待機中";
   };
 
   button.addEventListener("click", () => {
-    status.innerText = "起動中…";
-
-    // 先に一言しゃべる（Safari対策）
-    speak("……聞いてるよ");
-
-    // 少し遅らせて聞き始める
-    setTimeout(() => {
-      recognition.start();
-    }, 500);
+    recognition.start();
   });
 });
