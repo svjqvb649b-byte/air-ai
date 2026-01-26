@@ -4,8 +4,8 @@ window.addEventListener("DOMContentLoaded", () => {
   const send = document.getElementById("send");
   const log = document.getElementById("log");
 
-  // シエスタ風・内容に依存しない返事
-  const replies = [
+  // 共通の静かな返事
+  const defaultReplies = [
     "……呼んだ？",
     "うん、ちゃんと聞こえてる",
     "無理に言葉にしなくていい",
@@ -15,7 +15,7 @@ window.addEventListener("DOMContentLoaded", () => {
   ];
 
   function speak(text) {
-    speechSynthesis.cancel(); // ← ★ここに追加
+    speechSynthesis.cancel();
     const uttr = new SpeechSynthesisUtterance(text);
     uttr.lang = "ja-JP";
     uttr.rate = 0.9;
@@ -23,27 +23,56 @@ window.addEventListener("DOMContentLoaded", () => {
     speechSynthesis.speak(uttr);
   }
 
+  function getReply(userText) {
+    // あいさつ
+    if (userText.includes("初めまして")) {
+      return "……初めまして。エアだよ。静かな方が得意";
+    }
+
+    // 自己紹介
+    if (userText.includes("自己紹介")) {
+      return "エア。君が話しかけると、ここにいる";
+    }
+
+    // 起きてる？
+    if (
+      userText.includes("起きてる") ||
+      userText.includes("いる？") ||
+      userText.includes("いる")
+    ) {
+      return "うん。ちゃんと起きてる";
+    }
+
+    // 名前呼び
+    if (userText.includes("エア")) {
+      return "……呼ばれた気がした";
+    }
+
+    // デフォルト（ランダム）
+    return defaultReplies[Math.floor(Math.random() * defaultReplies.length)];
+  }
+
   send.addEventListener("click", () => {
     const userText = input.value.trim();
     if (!userText) return;
 
-    // ログ表示（君の言葉）
+    // 君の発言ログ
     const userLine = document.createElement("div");
-    userLine.textContent = "君：「" + userText + "」";
+    userLine.textContent = `君：「${userText}」`;
     log.appendChild(userLine);
 
     input.value = "";
     status.textContent = "……";
 
     setTimeout(() => {
-      const msg = replies[Math.floor(Math.random() * replies.length)];
+      const reply = getReply(userText);
 
       const airLine = document.createElement("div");
-      airLine.textContent = "Air：「" + msg + "」";
+      airLine.textContent = `Air：「${reply}」`;
       log.appendChild(airLine);
 
-      speak(msg);
+      speak(reply);
       status.textContent = "待機中";
-    }, 800);
+    }, 700);
   });
 });
