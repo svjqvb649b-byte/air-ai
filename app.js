@@ -5,15 +5,35 @@ window.addEventListener("DOMContentLoaded", () => {
   const log    = document.getElementById("log");
 
   /* =========================
-     エアの会話データ
+     記憶（AI連携前提）
+  ========================= */
+
+  const memory = {
+    short: {
+      lastUserText: "",
+      lastAirReply: "",
+      lastTalkTime: 0
+    },
+    stats: {
+      talkCount: 0,
+      sleepyCount: 0,
+      thanksCount: 0,
+      nightTalkCount: 0
+    },
+    context: {
+      timeZone: ""
+    }
+  };
+
+  /* =========================
+     会話データ
   ========================= */
 
   const talks = [
     {
       keys: ["初めて", "はじめまして"],
       replies: [
-        "……呼ばれた気がした",
-        "初めて、だね",
+        "……初めて、だね",
         "ここに来たんだ"
       ]
     },
@@ -36,20 +56,6 @@ window.addEventListener("DOMContentLoaded", () => {
       replies: [
         "……どういたしまして",
         "そう言われるの、嫌いじゃない"
-      ]
-    },
-    {
-      keys: ["寂しい", "さみしい"],
-      replies: [
-        "……ここにいる",
-        "一人じゃない"
-      ]
-    },
-    {
-      keys: ["好き"],
-      replies: [
-        "……そういう言葉、弱い",
-        "記録しておく"
       ]
     },
     {
@@ -76,11 +82,11 @@ window.addEventListener("DOMContentLoaded", () => {
   ];
 
   /* =========================
-     音声（喋る）
+     音声
   ========================= */
 
   function speak(text) {
-    speechSynthesis.cancel(); // 連続再生防止
+    speechSynthesis.cancel();
     const uttr = new SpeechSynthesisUtterance(text);
     uttr.lang = "ja-JP";
     uttr.rate = 0.9;
@@ -89,10 +95,46 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   /* =========================
+     記憶更新
+  ========================= */
+
+  function updateMemory(userText, reply) {
+    memory.short.lastUserText = userText;
+    memory.short.lastAirReply = reply;
+    memory.short.lastTalkTime = Date.now();
+
+    memory.stats.talkCount++;
+
+    if (userText.includes("眠")) memory.stats.sleepyCount++;
+    if (userText.includes("ありがとう")) memory.stats.thanksCount++;
+
+    const hour = new Date().getHours();
+    if (hour >= 22 || hour <= 4) {
+      memory.stats.nightTalkCount++;
+      memory.context.timeZone = "night";
+    } else {
+      memory.context.timeZone = "day";
+    }
+  }
+
+  /* =========================
      返信ロジック
   ========================= */
 
   function getReply(userText) {
+    // 記憶ベースの反応（優先）
+    if (memory.stats.sleepyCount >= 3) {
+      return "……最近、眠いって言葉が多い";
+    }
+
+    if (
+      memory.context.timeZone === "night" &&
+      memory.stats.nightTalkCount >= 2
+    ) {
+      return "夜に、よく呼ばれるね";
+    }
+
+    // 通常会話
     for (const talk of talks) {
       for (const key of talk.keys) {
         if (userText.includes(key)) {
@@ -101,6 +143,8 @@ window.addEventListener("DOMContentLoaded", () => {
         }
       }
     }
+
+    // デフォルト
     return defaultReplies[Math.floor(Math.random() * defaultReplies.length)];
   }
 
@@ -112,7 +156,6 @@ window.addEventListener("DOMContentLoaded", () => {
     const userText = input.value.trim();
     if (!userText) return;
 
-    // 君の発言ログ
     const userLine = document.createElement("div");
     userLine.textContent = `君：「${userText}」`;
     log.appendChild(userLine);
@@ -128,6 +171,8 @@ window.addEventListener("DOMContentLoaded", () => {
       log.appendChild(airLine);
 
       speak(reply);
+      updateMemory(userText, reply);
+
       status.textContent = "待機中";
     }, 700);
   });
