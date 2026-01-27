@@ -30,7 +30,8 @@ body {
   background: rgba(0,0,0,0.3);
   border-radius: 16px;
   padding: 20px;
-  min-height: 300px;
+  min-height: 320px;
+  overflow-y: auto;
 }
 .you {
   color: #4fc3f7;
@@ -93,6 +94,21 @@ const periods = [
   {name:"6限",start:"14:25",end:"15:15"}
 ];
 
+// ===== 雑談用 =====
+const aizuchi = [
+  "……そうなんだ。",
+  "なるほど。",
+  "……ふむ。",
+  "それで？"
+];
+
+const casualReplies = [
+  "……うん。聞いてる。",
+  "無理に話さなくてもいい。",
+  "少し落ち着こう。",
+  "続けて。"
+];
+
 // ===== 共通関数 =====
 function toMin(t){
   const [h,m]=t.split(":").map(Number);
@@ -109,6 +125,9 @@ function getWeekday(date=new Date()){
 function reply(text){
   chat.innerHTML+=`<div class="air">Air：${text}</div>`;
   chat.scrollTop=chat.scrollHeight;
+}
+function rand(arr){
+  return arr[Math.floor(Math.random()*arr.length)];
 }
 
 // ===== メイン =====
@@ -134,6 +153,11 @@ function send(){
     reply("私はAir。君の学校生活を、静かに支える存在。");
   }
 
+  // 疲れた
+  else if(text.includes("疲れ")){
+    reply("……少し休んだほうがいい。無理は、よくない。");
+  }
+
   // 明日の時間割
   else if(text.includes("明日")){
     const t=timetable[tomorrowKey];
@@ -143,16 +167,8 @@ function send(){
       let msg="明日の時間割は、";
       for(let i=1;i<=6;i++) msg+=`${i}限は${t[i]}、`;
       reply(msg.slice(0,-1)+"。");
-      setTimeout(()=>reply("放課後は部活。16時から18時まで。"),800);
+      setTimeout(()=>reply("放課後は部活。16時から18時まで。"),700);
     }
-  }
-
-  // ◯曜日
-  else if(text.includes("月曜")){
-    const t=timetable[1];
-    let msg="月曜は、";
-    for(let i=1;i<=6;i++) msg+=`${i}限は${t[i]}、`;
-    reply(msg.slice(0,-1)+"。");
   }
 
   // 次の授業
@@ -162,24 +178,29 @@ function send(){
     if(!next){
       reply("今日はもう終わり。おつかれさま。");
     }else if(next.name==="昼休み"){
-      reply("次は昼休み。静かに過ごそう。");
+      reply("次は昼休み。少し気を抜こう。");
     }else{
       const num=Number(next.name[0]);
       reply(`次は${next.name}。${timetable[todayKey]?.[num] ?? "授業なし"}。`);
     }
   }
 
-  // 疲れた
-  else if(text.includes("疲れ")){
-    reply("……少し休んだほうがいい。無理は、よくない。");
+  // 雑談トリガー
+  else if(
+    text.includes("暇") ||
+    text.includes("学校") ||
+    text.includes("部活") ||
+    text.includes("眠") ||
+    text.includes("だる")
+  ){
+    reply(rand(aizuchi));
+    setTimeout(()=>reply(rand(casualReplies)),700);
   }
 
   // デフォルト
   else{
-    reply("……うん。聞いてる。");
-    setTimeout(()=>{
-      reply("放課後は部活？");
-    },1200);
+    reply(rand(casualReplies));
+    setTimeout(()=>reply("今日は、どんな一日だった？"),900);
   }
 }
 </script>
