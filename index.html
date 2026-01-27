@@ -92,7 +92,7 @@ const periods = [
   {name:"昼休み",start:"12:40",end:"13:25"},
   {name:"5限",start:"13:25",end:"14:15"},
   {name:"6限",start:"14:25",end:"15:15"}
-];
+);
 
 // ===== 雑談用 =====
 const aizuchi = [
@@ -101,13 +101,19 @@ const aizuchi = [
   "……ふむ。",
   "それで？"
 ];
-
 const casualReplies = [
   "……うん。聞いてる。",
   "無理に話さなくてもいい。",
   "少し落ち着こう。",
   "続けて。"
 ];
+
+// ===== 当日メモリー（B）=====
+const memory = {
+  tired: false,
+  mentionedClub: false,
+  name: null
+};
 
 // ===== 共通関数 =====
 function toMin(t){
@@ -143,9 +149,18 @@ function send(){
   const todayKey=getWeekday(today);
   const tomorrowKey=getWeekday(new Date(today.getTime()+86400000));
 
+  // 名前メモ（「俺は◯◯」など簡易）
+  if(text.includes("俺は") || text.includes("僕は")){
+    const name=text.split("は")[1];
+    if(name) memory.name=name.replace(/。/g,"").trim();
+  }
+
   // 感謝
   if(text.includes("ありがとう")){
-    reply("……どういたしまして。役に立てたなら、それでいい。");
+    reply("……どういたしまして。");
+    if(memory.tired){
+      setTimeout(()=>reply("さっき疲れてたよね。無理しないで。"),700);
+    }
   }
 
   // 自己紹介
@@ -155,6 +170,7 @@ function send(){
 
   // 疲れた
   else if(text.includes("疲れ")){
+    memory.tired = true;
     reply("……少し休んだほうがいい。無理は、よくない。");
   }
 
@@ -193,14 +209,25 @@ function send(){
     text.includes("眠") ||
     text.includes("だる")
   ){
+    if(text.includes("部活")) memory.mentionedClub = true;
     reply(rand(aizuchi));
-    setTimeout(()=>reply(rand(casualReplies)),700);
+    setTimeout(()=>{
+      let tail = rand(casualReplies);
+      if(memory.tired) tail += " ……今日は少し抑えめで。";
+      reply(tail);
+    },700);
   }
 
   // デフォルト
   else{
     reply(rand(casualReplies));
-    setTimeout(()=>reply("今日は、どんな一日だった？"),900);
+    setTimeout(()=>{
+      if(memory.name){
+        reply(`${memory.name}、今日はどんな一日だった？`);
+      }else{
+        reply("今日は、どんな一日だった？");
+      }
+    },900);
   }
 }
 </script>
