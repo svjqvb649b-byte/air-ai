@@ -3,61 +3,53 @@
 <head>
   <meta charset="UTF-8">
   <title>Air</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      background: linear-gradient(#0b1220, #020617);
-      color: #fff;
+      background: #0b1220;
+      color: white;
+      font-family: system-ui;
     }
     .container {
-      padding: 20px;
+      padding: 30px;
     }
-    h1 {
+    .title {
       text-align: center;
-      letter-spacing: 2px;
+      font-size: 40px;
+      margin-top: 40px;
     }
     .status {
       text-align: center;
       opacity: 0.7;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
     }
     .chat {
-      background: rgba(0,0,0,0.4);
-      border-radius: 12px;
-      padding: 15px;
-      height: 60vh;
-      overflow-y: auto;
+      background: rgba(0,0,0,0.3);
+      border-radius: 16px;
+      padding: 20px;
+      min-height: 200px;
     }
-    .msg {
-      margin-bottom: 10px;
-      line-height: 1.5;
-    }
-    .user {
-      color: #4cc9f0;
+    .you {
+      color: #4fc3f7;
+      margin-bottom: 5px;
     }
     .air {
-      color: #fff;
-    }
-    .input-area {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
+      margin-bottom: 15px;
     }
     input {
-      flex: 1;
-      padding: 10px;
+      width: 75%;
+      padding: 12px;
       border-radius: 20px;
       border: none;
       outline: none;
     }
     button {
-      padding: 10px 16px;
+      width: 20%;
+      padding: 12px;
       border-radius: 20px;
       border: none;
-      background: #4cc9f0;
-      color: #000;
+      background: #4fc3f7;
+      color: black;
       font-weight: bold;
     }
   </style>
@@ -65,129 +57,102 @@
 <body>
 
 <div class="container">
-  <h1>Air</h1>
+  <div class="title">Air</div>
   <div class="status">待機中</div>
 
   <div class="chat" id="chat"></div>
 
-  <div class="input-area">
+  <div style="margin-top:20px;">
     <input id="input" placeholder="ここに話しかけて">
     <button onclick="send()">送る</button>
   </div>
 </div>
 
 <script>
-const chat = document.getElementById("chat");
-const input = document.getElementById("input");
-
-let userName = "拓磨";
+const periods = [
+  { name: "1限", start: "08:50", end: "09:40" },
+  { name: "2限", start: "09:50", end: "10:40" },
+  { name: "3限", start: "10:50", end: "11:40" },
+  { name: "4限", start: "11:50", end: "12:40" },
+  { name: "昼休み", start: "12:40", end: "13:25" },
+  { name: "5限", start: "13:25", end: "14:15" },
+  { name: "6限", start: "14:25", end: "15:15" }
+];
 
 const timetable = {
-  1: "英語コミュⅠ",
-  2: "現代の国語",
-  3: "数学Ⅰ",
-  4: "保健",
-  5: "公共",
-  6: "総合"
+  1: {1:"数学Ⅰ",2:"英語コミュⅠ",3:"体育",4:"言語文化",5:"家庭基礎",6:"音楽Ⅰ"},
+  2: {1:"英語コミュⅠ",2:"現代の国語",3:"数学Ⅰ",4:"保健",5:"公共",6:"総合"},
+  3: {1:"英語コミュⅠ",2:"科学と人間生活",3:"言語文化",4:"歴史総合",5:"体育",6:"LHR"},
+  4: {1:"音楽Ⅰ",2:"科学と人間生活",3:"情報Ⅰ",4:"家庭基礎",5:"体育",6:"数学Ⅰ"},
+  5: {1:"公共",2:"数学Ⅰ",3:"英語コミュⅠ",4:"歴史総合",5:"現代の国語",6:"情報Ⅰ"}
 };
 
-// 正確な時間 → 何限か
-function getPeriod() {
-  const now = new Date();
-  const t = now.getHours() * 60 + now.getMinutes();
-
-  if (t < 510) return null;      // 8:30前
-  if (t < 560) return 1;         // 1限
-  if (t < 610) return 2;
-  if (t < 660) return 3;
-  if (t < 710) return 4;
-  if (t < 770) return null;      // 昼休み
-  if (t < 820) return 5;
-  if (t < 870) return 6;
-
-  return null;
+function nowMinutes() {
+  const d = new Date();
+  return d.getHours() * 60 + d.getMinutes();
 }
 
-function addMsg(text, cls) {
-  const div = document.createElement("div");
-  div.className = `msg ${cls}`;
-  div.textContent = text;
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
+function toMin(t) {
+  const [h,m] = t.split(":").map(Number);
+  return h * 60 + m;
 }
 
-function airSay(text) {
-  addMsg("Air : " + text, "air");
+function getCurrentPeriod() {
+  const now = nowMinutes();
+  return periods.find(p => now >= toMin(p.start) && now < toMin(p.end)) || null;
 }
 
-function send() {
-  const text = input.value.trim();
-  if (!text) return;
-  addMsg("君 : " + text, "user");
-  input.value = "";
-  reply(text);
+function getNextPeriod() {
+  const now = nowMinutes();
+  return periods.find(p => now < toMin(p.start)) || null;
 }
 
 function reply(text) {
+  const chat = document.getElementById("chat");
+  chat.innerHTML += `<div class="air">Air：${text}</div>`;
+}
 
-  // 挨拶
-  if (/おはよう/.test(text)) {
-    airSay(`おはよう、${userName}。ちゃんと起きられたね。`);
-    return;
+function send() {
+  const input = document.getElementById("input");
+  const text = input.value;
+  if (!text) return;
+
+  const chat = document.getElementById("chat");
+  chat.innerHTML += `<div class="you">君：${text}</div>`;
+
+  const day = new Date().getDay();
+  const today = timetable[day];
+
+  if (text.includes("疲れ")) {
+    reply("……少し、休んだほうがいい。無理はよくない。");
   }
-
-  if (/こんばんは/.test(text)) {
-    airSay(`こんばんは、${userName}。静かな時間だね。`);
-    return;
-  }
-
-  // 自己紹介
-  if (/自己紹介/.test(text)) {
-    airSay(`私はAir。${userName}が話しかけた時、ここにいる。静かに、そばにいる存在。`);
-    return;
-  }
-
-  // 疲れた
-  if (/疲れた|つかれた/.test(text)) {
-    airSay(`…無理しすぎ。今は、深呼吸して。私はここにいる。`);
-    return;
-  }
-
-  // 今日の予定
-  if (/今日の予定/.test(text)) {
-    airSay(
-      `今日の予定だよ。\n` +
-      `1限：英語コミュⅠ\n` +
-      `2限：現代の国語\n` +
-      `3限：数学Ⅰ\n` +
-      `4限：保健\n` +
-      `5限：公共\n` +
-      `6限：総合`
-    );
-    return;
-  }
-
-  // 次の授業
-  if (/次|次なに/.test(text)) {
-    const p = getPeriod();
-    if (p === null) {
-      airSay("今は授業の時間じゃないみたい。少し休もう。");
-    } else if (p < 6) {
-      airSay(`次は${p + 1}限。${timetable[p + 1]}だよ。`);
+  else if (text.includes("次")) {
+    const next = getNextPeriod();
+    if (!next) {
+      reply("今日は、もう終わり。おつかれさま。");
+    } else if (next.name === "昼休み") {
+      reply("次は昼休み。静かに過ごそう。");
     } else {
-      airSay("これで今日の授業は終わり。おつかれさま。");
+      const num = Number(next.name[0]);
+      reply(`次は${next.name}。${today[num]}。`);
     }
-    return;
+  }
+  else if (text.includes("今")) {
+    const cur = getCurrentPeriod();
+    if (!cur) {
+      reply("今は授業の時間じゃない。");
+    } else if (cur.name === "昼休み") {
+      reply("今は昼休み。");
+    } else {
+      const num = Number(cur.name[0]);
+      reply(`今は${cur.name}。${today[num]}。`);
+    }
+  }
+  else {
+    reply("……うん。聞いてる。");
   }
 
-  // 雑談
-  if (/学校|授業|暇/.test(text)) {
-    airSay("うん、聞いてる。無理にまとめなくていい。");
-    return;
-  }
-
-  // デフォルト
-  airSay(`${userName}、聞いてる。どうした？`);
+  input.value = "";
 }
 </script>
 
