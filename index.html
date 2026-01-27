@@ -1,68 +1,94 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>Air</title>
-  <style>
-    body {
-      margin: 0;
-      background: #0b1220;
-      color: white;
-      font-family: system-ui;
-    }
-    .container {
-      padding: 30px;
-    }
-    .title {
-      text-align: center;
-      font-size: 40px;
-      margin-top: 40px;
-    }
-    .status {
-      text-align: center;
-      opacity: 0.7;
-      margin-bottom: 30px;
-    }
-    .chat {
-      background: rgba(0,0,0,0.3);
-      border-radius: 16px;
-      padding: 20px;
-      min-height: 200px;
-    }
-    .you {
-      color: #4fc3f7;
-      margin-bottom: 5px;
-    }
-    .air {
-      margin-bottom: 15px;
-    }
-    input {
-      width: 75%;
-      padding: 12px;
-      border-radius: 20px;
-      border: none;
-      outline: none;
-    }
-    button {
-      width: 20%;
-      padding: 12px;
-      border-radius: 20px;
-      border: none;
-      background: #4fc3f7;
-      color: black;
-      font-weight: bold;
-    }
-  </style>
-</head>
-<body>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Air</title>
 
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #0b1220;
+  color: white;
+  font-family: system-ui;
+  height: 100vh;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 20px;
+}
+
+.title {
+  text-align: center;
+  font-size: 36px;
+  margin-top: 10px;
+}
+
+.status {
+  text-align: center;
+  opacity: 0.7;
+  margin-bottom: 15px;
+}
+
+.chat {
+  flex: 1;
+  background: rgba(0,0,0,0.3);
+  border-radius: 16px;
+  padding: 15px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+}
+
+.you {
+  color: #4fc3f7;
+  margin-bottom: 6px;
+}
+
+.air {
+  margin-bottom: 12px;
+}
+
+.input-area {
+  display: flex;
+  gap: 10px;
+}
+
+input {
+  flex: 1;
+  padding: 14px;
+  border-radius: 20px;
+  border: none;
+  outline: none;
+  font-size: 16px;
+}
+
+button {
+  padding: 14px 18px;
+  border-radius: 20px;
+  border: none;
+  background: #4fc3f7;
+  color: black;
+  font-weight: bold;
+  font-size: 16px;
+}
+</style>
+</head>
+
+<body>
 <div class="container">
   <div class="title">Air</div>
   <div class="status">待機中</div>
 
   <div class="chat" id="chat"></div>
 
-  <div style="margin-top:20px;">
+  <div class="input-area">
     <input id="input" placeholder="ここに話しかけて">
     <button onclick="send()">送る</button>
   </div>
@@ -80,11 +106,11 @@ const periods = [
 ];
 
 const timetable = {
-  1: {1:"数学Ⅰ",2:"英語コミュⅠ",3:"体育",4:"言語文化",5:"家庭基礎",6:"音楽Ⅰ"},
-  2: {1:"英語コミュⅠ",2:"現代の国語",3:"数学Ⅰ",4:"保健",5:"公共",6:"総合"},
-  3: {1:"英語コミュⅠ",2:"科学と人間生活",3:"言語文化",4:"歴史総合",5:"体育",6:"LHR"},
-  4: {1:"音楽Ⅰ",2:"科学と人間生活",3:"情報Ⅰ",4:"家庭基礎",5:"体育",6:"数学Ⅰ"},
-  5: {1:"公共",2:"数学Ⅰ",3:"英語コミュⅠ",4:"歴史総合",5:"現代の国語",6:"情報Ⅰ"}
+  1: {1:"数学",2:"英語コミュ",3:"体育",4:"言語文化",5:"家庭"},
+  2: {1:"英語コミュ",2:"現代の国語",3:"数学",4:"保健",5:"公共"},
+  3: {1:"英語コミュ",2:"科学と人間生活",3:"言語文化",4:"歴史総合"},
+  4: {1:"音楽",2:"科学と人間生活",3:"情報Ⅰ",4:"家庭基礎"},
+  5: {1:"公共",2:"数学Ⅰ",3:"英語コミュ",4:"歴史総合"}
 };
 
 function nowMinutes() {
@@ -99,17 +125,18 @@ function toMin(t) {
 
 function getCurrentPeriod() {
   const now = nowMinutes();
-  return periods.find(p => now >= toMin(p.start) && now < toMin(p.end)) || null;
+  return periods.find(p => now >= toMin(p.start) && now <= toMin(p.end));
 }
 
 function getNextPeriod() {
   const now = nowMinutes();
-  return periods.find(p => now < toMin(p.start)) || null;
+  return periods.find(p => now < toMin(p.start));
 }
 
 function reply(text) {
   const chat = document.getElementById("chat");
-  chat.innerHTML += `<div class="air">Air：${text}</div>`;
+  chat.innerHTML += `<div class="air">Air: ${text}</div>`;
+  chat.scrollTop = chat.scrollHeight;
 }
 
 function send() {
@@ -118,34 +145,30 @@ function send() {
   if (!text) return;
 
   const chat = document.getElementById("chat");
-  chat.innerHTML += `<div class="you">君：${text}</div>`;
+  chat.innerHTML += `<div class="you">君: ${text}</div>`;
 
   const day = new Date().getDay();
   const today = timetable[day];
 
   if (text.includes("疲れ")) {
-    reply("……少し、休んだほうがいい。無理はよくない。");
+    reply("……少し、休んだほうがいい。無理は好きじゃない。");
   }
   else if (text.includes("次")) {
     const next = getNextPeriod();
-    if (!next) {
-      reply("今日は、もう終わり。おつかれさま。");
-    } else if (next.name === "昼休み") {
-      reply("次は昼休み。静かに過ごそう。");
-    } else {
+    if (!next) reply("今日はもう終わり。おつかれさま。");
+    else if (next.name === "昼休み") reply("次は昼休み。静かに過ごそう。");
+    else {
       const num = Number(next.name[0]);
-      reply(`次は${next.name}。${today[num]}。`);
+      reply(`次は${next.name}。${today?.[num] ?? "授業なし"}。`);
     }
   }
   else if (text.includes("今")) {
     const cur = getCurrentPeriod();
-    if (!cur) {
-      reply("今は授業の時間じゃない。");
-    } else if (cur.name === "昼休み") {
-      reply("今は昼休み。");
-    } else {
+    if (!cur) reply("今は授業時間じゃない。");
+    else if (cur.name === "昼休み") reply("今は昼休み。");
+    else {
       const num = Number(cur.name[0]);
-      reply(`今は${cur.name}。${today[num]}。`);
+      reply(`今は${cur.name}。${today?.[num] ?? "授業なし"}。`);
     }
   }
   else {
@@ -155,6 +178,5 @@ function send() {
   input.value = "";
 }
 </script>
-
 </body>
 </html>
