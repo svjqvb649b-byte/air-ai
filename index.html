@@ -1,77 +1,60 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>Air</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <style>
 body {
   background: #0b132b;
-  color: #ffffff;
+  color: #fff;
   font-family: sans-serif;
   margin: 0;
   padding: 20px;
 }
-
 h1 {
   text-align: center;
   margin-top: 30px;
 }
-
 #status {
   text-align: center;
   opacity: 0.7;
   margin-bottom: 20px;
 }
-
 #log {
   background: rgba(0,0,0,0.4);
   padding: 15px;
-  border-radius: 12px;
+  border-radius: 10px;
   min-height: 300px;
   white-space: pre-wrap;
   margin-bottom: 20px;
 }
-
-.you {
-  color: #4fc3f7;
-  margin-bottom: 8px;
-}
-
-.air {
-  color: #ffffff;
-  margin-bottom: 12px;
-}
-
+.you { color: #4fc3f7; }
+.air { color: #ffffff; }
 #inputArea {
   display: flex;
   gap: 10px;
 }
-
 input {
   flex: 1;
-  padding: 12px;
+  padding: 10px;
   border-radius: 8px;
   border: none;
   font-size: 16px;
 }
-
 button {
-  padding: 12px 20px;
+  padding: 10px 20px;
   border-radius: 8px;
   border: none;
   background: #4fc3f7;
-  color: #000;
   font-size: 16px;
 }
 </style>
 </head>
 
 <body>
-
 <h1>Air</h1>
 <div id="status">待機中</div>
-
 <div id="log"></div>
 
 <div id="inputArea">
@@ -92,77 +75,11 @@ function saveMemory() {
 }
 
 function addLine(speaker, text) {
-  const line = document.createElement("div");
-  line.className = speaker === "君" ? "you" : "air";
-  line.textContent = `${speaker} : ${text}`;
-  log.appendChild(line);
+  const div = document.createElement("div");
+  div.className = speaker === "君" ? "you" : "air";
+  div.textContent = `${speaker} : ${text}`;
+  log.appendChild(div);
   log.scrollTop = log.scrollHeight;
-}
-
-// ===== 時間割 =====
-const timetable = {
-  1: ["数学Ⅰ", "英語コミュⅠ", "体育", "言語文化", "家庭基礎", "音楽Ⅰ"],
-  2: ["英語コミュⅠ", "現代の国語", "数学Ⅰ", "保健", "公共", "総合"],
-  3: ["英語コミュⅠ", "科学と人間生活", "言語文化", "歴史総合", "体育", "LHR"],
-  4: ["音楽Ⅰ", "科学と人間生活", "情報Ⅰ", "家庭基礎", "体育", "数学Ⅰ"],
-  5: ["公共", "数学Ⅰ", "英語コミュⅠ", "歴史総合", "現代の国語", "情報Ⅰ"]
-};
-
-function getTodaySchedule() {
-  const day = new Date().getDay();
-  if (day === 0 || day === 6) {
-    return "今日は休み。少し、呼吸を整えよう。";
-  }
-
-  const subjects = timetable[day];
-  let result = "今日の予定だよ。\n";
-  subjects.forEach((s, i) => {
-    result += `${i + 1}限：${s}\n`;
-  });
-  return result.trim();
-}
-
-function airReply(text) {
-
-  // 名前記憶
-  const nameMatch = text.match(/俺の名前は(.+)/);
-  if (nameMatch) {
-    memory.userName = nameMatch[1].trim();
-    saveMemory();
-    return `${memory.userName}……覚えた。次からそう呼ぶ。`;
-  }
-
-  // 自己紹介
-  if (text.includes("自己紹介")) {
-    const n = memory.userName || "君";
-    return `私はAir。${n}が呼んだ時、ここにいる。静かに、そばで。`;
-  }
-
-  // 予定
-  if (
-    text.includes("今日の予定") ||
-    text.includes("予定教えて") ||
-    text.includes("時間割")
-  ) {
-    return getTodaySchedule();
-  }
-
-  // 挨拶
-  if (text.includes("おはよう")) {
-    return `おはよう、${memory.userName || "君"}。無理しなくていい。`;
-  }
-
-  if (text.includes("こんばんは")) {
-    return `こんばんは、${memory.userName || "君"}。静かな時間だね。`;
-  }
-
-  // 名前未登録
-  if (!memory.userName) {
-    return "……君。ここにいる。名前を教えて。";
-  }
-
-  // 雑談
-  return `${memory.userName}、聞いてる。どうした？`;
 }
 
 function talk() {
@@ -170,11 +87,88 @@ function talk() {
   if (!text) return;
   addLine("君", text);
   input.value = "";
-  setTimeout(() => {
-    addLine("Air", airReply(text));
-  }, 400);
+  const reply = airReply(text);
+  addLine("Air", reply);
+}
+
+/* ===== 時間割 ===== */
+const timetable = {
+  1: ["英語コミュI","現代の国語","数学I","保健","公共","総合"], // 月
+  2: ["英語コミュI","現代の国語","数学I","保健","公共","総合"], // 火
+  3: ["英語コミュI","科学と人間生活","言語文化","歴史総合","体育","LHR"], // 水
+  4: ["音楽I","科学と人間生活","情報I","家庭基礎","体育","数学I"], // 木
+  5: ["公共","数学I","英語コミュI","歴史総合","現代の国語","情報I"]  // 金
+};
+
+function getPeriod() {
+  const h = new Date().getHours();
+  if (h < 9) return 1;
+  if (h < 10) return 2;
+  if (h < 11) return 3;
+  if (h < 12) return 4;
+  if (h < 14) return 5;
+  if (h < 15) return 6;
+  return null;
+}
+
+/* ===== Airの返答 ===== */
+function airReply(text) {
+
+  // 名前を覚える
+  const nameMatch = text.match(/俺の名前は(.+)/);
+  if (nameMatch) {
+    memory.userName = nameMatch[1].trim();
+    saveMemory();
+    return `${memory.userName}……覚えた。次からそう呼ぶ。`;
+  }
+
+  const name = memory.userName || "君";
+
+  // 自己紹介
+  if (text.includes("自己紹介")) {
+    return `私はAir。${name}が話しかけた時、そばにいる。静かに、必要な時に応える存在。`;
+  }
+
+  // 挨拶
+  if (text.includes("おはよう")) return `おはよう、${name}。今日も一日が始まったね。`;
+  if (text.includes("こんばんは")) return `こんばんは、${name}。静かな時間だね。`;
+
+  // 疲れた系 ⭐追加
+  if (
+    text.includes("疲れた") ||
+    text.includes("しんどい") ||
+    text.includes("もう無理")
+  ) {
+    return `${name}……無理はしなくていい。少し息を整えよう。私はここにいる。`;
+  }
+
+  // 次の授業 ⭐追加
+  if (
+    text.includes("次の授業") ||
+    text === "次は？" ||
+    text.includes("次なに")
+  ) {
+    const day = new Date().getDay();
+    const period = getPeriod();
+    if (!timetable[day] || !period || !timetable[day][period]) {
+      return "今は授業の合間か、もう終わってる時間だと思う。";
+    }
+    return `次は${period + 1}限。${timetable[day][period]}だよ。`;
+  }
+
+  // 今日の予定
+  if (text.includes("今日の予定")) {
+    const day = new Date().getDay();
+    if (!timetable[day]) return "今日は学校はないみたい。";
+    let res = "今日の予定だよ。\n";
+    timetable[day].forEach((c,i)=>{
+      res += `${i+1}限 : ${c}\n`;
+    });
+    return res.trim();
+  }
+
+  return `${name}、聞いてる。どうした？`;
 }
 </script>
-
 </body>
 </html>
