@@ -1,49 +1,40 @@
-body {
+/* 共通：画面いっぱい使う */
+html, body {
   margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #0f172a;
-  color: #e5e7eb;
+  padding: 0;
+  height: 100%;
 }
 
-#app {
-  min-height: 100vh;
+/* 全体コンテナ */
+.app {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  height: 100vh;
 }
 
-h1 {
-  margin-bottom: 8px;
-  font-size: 28px;
-}
-
-#status {
-  opacity: 0.8;
-  margin-bottom: 16px;
-}
-
-#log {
-  width: 90%;
-  max-width: 420px;
-  height: 220px;
-  background: #020617;
-  border-radius: 12px;
-  padding: 12px;
+/* チャット表示エリア */
+.chat-area {
+  flex: 1;
   overflow-y: auto;
-  margin-bottom: 16px;
-  font-size: 14px;
 }
 
-#log p {
-  margin: 4px 0;
+/* 入力欄 */
+.input-area {
+  display: flex;
+  padding: 10px;
 }
 
-button {
-  padding: 12px 28px;
-  border-radius: 999px;
-  border: none;
-  font-size: 16px;
-  background: #38bdf8;
-  color: #020617;
+/* ===== 縦向き専用 ===== */
+@media (orientation: portrait) {
+  .app {
+    padding: 10px;
+  }
+
+  .chat-area {
+    font-size: 15px;
+  }
+
+  .input-area input {
+    font-size: 16px;
+  }
 }
