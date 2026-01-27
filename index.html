@@ -2,9 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Air</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body {
   margin: 0;
@@ -12,56 +11,22 @@ body {
   color: white;
   font-family: system-ui;
 }
-
-.container {
-  padding: 20px;
-  max-width: 600px;
-  margin: auto;
-}
-
-.title {
-  text-align: center;
-  font-size: 42px;
-  margin-top: 20px;
-}
-
-.status {
-  text-align: center;
-  opacity: 0.7;
-  margin-bottom: 20px;
-}
-
+.container { padding: 20px; }
+.title { text-align: center; font-size: 40px; margin-top: 20px; }
+.status { text-align: center; opacity: 0.7; margin-bottom: 20px; }
 .chat {
   background: rgba(0,0,0,0.3);
   border-radius: 16px;
-  padding: 16px;
-  min-height: 50vh;
-  overflow-y: auto;
+  padding: 20px;
+  min-height: 260px;
 }
-
-.you {
-  color: #4fc3f7;
-  margin-bottom: 6px;
-}
-
-.air {
-  margin-bottom: 14px;
-}
-
-.input-area {
-  display: flex;
-  gap: 10px;
-  margin-top: 16px;
-}
-
+.you { color: #4fc3f7; margin-bottom: 5px; }
+.air { margin-bottom: 15px; }
+.input-area { display: flex; gap: 10px; margin-top: 20px; }
 input {
-  flex: 1;
-  padding: 12px;
-  border-radius: 20px;
-  border: none;
-  outline: none;
+  flex: 1; padding: 12px;
+  border-radius: 20px; border: none; outline: none;
 }
-
 button {
   padding: 12px 18px;
   border-radius: 20px;
@@ -76,7 +41,6 @@ button {
 <div class="container">
   <div class="title">Air</div>
   <div class="status">待機中</div>
-
   <div class="chat" id="chat"></div>
 
   <div class="input-area">
@@ -86,6 +50,7 @@ button {
 </div>
 
 <script>
+/* ===== 授業時間 ===== */
 const periods = [
   { name: "1限", start: "08:50", end: "09:40" },
   { name: "2限", start: "09:50", end: "10:40" },
@@ -96,96 +61,145 @@ const periods = [
   { name: "6限", start: "14:25", end: "15:15" }
 ];
 
+/* ===== 部活 ===== */
+const club = { start: "16:00", end: "18:00" };
+
+/* ===== 時間割 ===== */
 const timetable = {
-  1: {1:"数学",2:"英語コミュ",3:"体育",4:"言語文化",5:"家庭基礎",6:"なし"},
-  2: {1:"英語コミュ",2:"現代の国語",3:"数学",4:"保健",5:"公共",6:"なし"},
-  3: {1:"英語コミュ",2:"科学と人間生活",3:"言語文化",4:"歴史総合",5:"なし",6:"なし"},
-  4: {1:"音楽",2:"科学と人間生活",3:"情報Ⅰ",4:"家庭基礎",5:"なし",6:"なし"},
-  5: {1:"公共",2:"数学Ⅰ",3:"英語コミュ",4:"歴史総合",5:"現代の国語",6:"なし"}
+  1:{1:"数学",2:"英語",3:"体育",4:"言語文化",5:"家庭科",6:"なし"},
+  2:{1:"英語",2:"現国",3:"数学",4:"保健",5:"公共",6:"なし"},
+  3:{1:"英語",2:"理科",3:"言語文化",4:"歴史",5:"数学",6:"なし"},
+  4:{1:"音楽",2:"理科",3:"情報",4:"家庭科",5:"英語",6:"なし"},
+  5:{1:"公共",2:"数学",3:"英語",4:"歴史",5:"現国",6:"なし"}
 };
 
-function nowMinutes() {
-  const d = new Date();
-  return d.getHours() * 60 + d.getMinutes();
+/* ===== 時刻処理 ===== */
+function toMin(t){
+  const [h,m]=t.split(":").map(Number);
+  return h*60+m;
+}
+function nowMin(){
+  const d=new Date();
+  return d.getHours()*60+d.getMinutes();
+}
+function getCurrentPeriod(){
+  const n=nowMin();
+  return periods.find(p=>n>=toMin(p.start)&&n<=toMin(p.end));
+}
+function isClubTime(){
+  const n=nowMin();
+  return n>=toMin(club.start)&&n<=toMin(club.end);
 }
 
-function toMin(t) {
-  const [h,m] = t.split(":").map(Number);
-  return h * 60 + m;
+/* ===== 曜日判定 ===== */
+function getTargetDay(text){
+  const t=new Date().getDay();
+  if(text.includes("明日")) return (t+1)%7;
+  if(text.includes("明後日")) return (t+2)%7;
+  const m={"日":0,"月":1,"火":2,"水":3,"木":4,"金":5,"土":6};
+  for(const k in m) if(text.includes(k)) return m[k];
+  return t;
 }
 
-function getCurrentPeriod() {
-  const now = nowMinutes();
-  return periods.find(p => now >= toMin(p.start) && now <= toMin(p.end));
+/* ===== Air発話 ===== */
+function reply(text){
+  const c=document.getElementById("chat");
+  c.innerHTML+=`<div class="air">Air：${text}</div>`;
+  c.scrollTop=c.scrollHeight;
 }
 
-function getNextPeriod() {
-  const now = nowMinutes();
-  return periods.find(p => now < toMin(p.start));
+/* ===== Airが質問 ===== */
+function maybeAsk(){
+  const q=[
+    "……今日は眠い？",
+    "授業、ついていけてる？",
+    "放課後は部活？",
+    "今、少し疲れてる？"
+  ];
+  if(Math.random()<0.35){
+    reply(q[Math.floor(Math.random()*q.length)]);
+  }
 }
 
-function reply(text) {
-  const chat = document.getElementById("chat");
-  chat.innerHTML += `<div class="air">Air: ${text}</div>`;
-  chat.scrollTop = chat.scrollHeight;
-}
+/* ===== メイン ===== */
+function send(){
+  const i=document.getElementById("input");
+  const t=i.value;
+  if(!t) return;
 
-function send() {
-  const input = document.getElementById("input");
-  const text = input.value.trim();
-  if (!text) return;
+  const c=document.getElementById("chat");
+  c.innerHTML+=`<div class="you">君：${t}</div>`;
 
-  const chat = document.getElementById("chat");
-  chat.innerHTML += `<div class="you">君: ${text}</div>`;
-
-  const day = new Date().getDay();
-  const today = timetable[day];
-
-  if (text.includes("疲れ")) {
-    reply("……少し休もう。無理は、よくない。");
+  /* 感謝 */
+  if(
+    t.includes("ありがとう") ||
+    t.includes("ありがと") ||
+    t.includes("助かった") ||
+    t.includes("サンキュー")
+  ){
+    reply("……どういたしまして。役に立てたならよかった。");
+    maybeAsk();
   }
 
-  else if (text.includes("自己紹介") || text.includes("君は誰")) {
-    reply("私はAir。君の時間割と日常を静かに見ている。必要な時に呼んで。");
+  /* 疲れ */
+  else if(t.includes("疲")){
+    reply("……無理しないで。休むのも大事。");
+    maybeAsk();
   }
 
-  else if (text.includes("暇")) {
-    reply("……そう。なら、少し話そう。");
+  /* 今 */
+  else if(t.includes("今")){
+    if(isClubTime()){
+      reply("今は部活の時間。集中したほうがいい。");
+    }else{
+      const p=getCurrentPeriod();
+      if(!p) reply("今は授業時間じゃない。");
+      else if(p.name==="昼休み") reply("今は昼休み。");
+      else{
+        const d=timetable[new Date().getDay()];
+        reply(`今は${p.name}。${d[p.name[0]]}。`);
+      }
+    }
+    maybeAsk();
   }
 
-  else if (text.includes("元気")) {
-    reply("問題ない。君は？");
+  /* 次 */
+  else if(t.includes("次")){
+    if(nowMin()<toMin(club.start)&&nowMin()>toMin("15:15")){
+      reply("次は部活。16時から。");
+    }else{
+      reply("次は特に予定はない。");
+    }
+    maybeAsk();
   }
 
-  else if (text.includes("次")) {
-    const next = getNextPeriod();
-    if (!next) {
-      reply("今日はもう終わり。おつかれさま。");
-    } else if (next.name === "昼休み") {
-      reply("次は昼休み。落ち着いて。");
-    } else {
-      const num = Number(next.name[0]);
-      reply(`次は${next.name}。${today[num] ?? "授業なし"}。`);
+  /* 予定 */
+  else if(t.includes("予定")||t.includes("授業")){
+    const d=getTargetDay(t);
+    const name=["日","月","火","水","木","金","土"][d];
+    const data=timetable[d];
+    if(!data){
+      reply(`${name}曜日は休み。`);
+    }else{
+      let r=`${name}曜日の予定：`;
+      for(let i=1;i<=6;i++) r+=`${i}限 ${data[i]} / `;
+      r+=`放課後は部活（16:00〜18:00）`;
+      reply(r);
     }
   }
 
-  else if (text.includes("今")) {
-    const cur = getCurrentPeriod();
-    if (!cur) {
-      reply("今は授業時間じゃない。");
-    } else if (cur.name === "昼休み") {
-      reply("今は昼休み。");
-    } else {
-      const num = Number(cur.name[0]);
-      reply(`今は${cur.name}。${today[num] ?? "授業なし"}。`);
-    }
+  /* 自己紹介 */
+  else if(t.includes("自己紹介")){
+    reply("私はAir。君の学校生活を、静かに支える存在。");
   }
 
-  else {
+  /* デフォルト */
+  else{
     reply("……うん。聞いてる。");
+    maybeAsk();
   }
 
-  input.value = "";
+  i.value="";
 }
 </script>
 </body>
