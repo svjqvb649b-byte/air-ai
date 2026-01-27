@@ -76,158 +76,110 @@ button {
 <script>
 // ===== 時間割 =====
 const timetable = {
-  1: {1:"数学Ⅰ",2:"英語コミュⅠ",3:"体育",4:"言語文化",5:"家庭基礎",6:"音楽Ⅰ"},
-  2: {1:"英語コミュⅠ",2:"現代の国語",3:"数学Ⅰ",4:"保健",5:"公共",6:"総合"},
-  3: {1:"英語コミュⅠ",2:"科学と人間生活",3:"言語文化",4:"歴史総合",5:"体育",6:"LHR"},
-  4: {1:"音楽Ⅰ",2:"科学と人間生活",3:"情報Ⅰ",4:"家庭基礎",5:"体育",6:"数学Ⅰ"},
-  5: {1:"公共",2:"数学Ⅰ",3:"英語コミュⅠ",4:"歴史総合",5:"現代の国語",6:"情報Ⅰ"}
+  1:{1:"数学Ⅰ",2:"英語コミュⅠ",3:"体育",4:"言語文化",5:"家庭基礎",6:"音楽Ⅰ"},
+  2:{1:"英語コミュⅠ",2:"現代の国語",3:"数学Ⅰ",4:"保健",5:"公共",6:"総合"},
+  3:{1:"英語コミュⅠ",2:"科学と人間生活",3:"言語文化",4:"歴史総合",5:"体育",6:"LHR"},
+  4:{1:"音楽Ⅰ",2:"科学と人間生活",3:"情報Ⅰ",4:"家庭基礎",5:"体育",6:"数学Ⅰ"},
+  5:{1:"公共",2:"数学Ⅰ",3:"英語コミュⅠ",4:"歴史総合",5:"現代の国語",6:"情報Ⅰ"}
 };
 
 // ===== 授業時間 =====
 const periods = [
-  {name:"1限",start:"08:50",end:"09:40"},
-  {name:"2限",start:"09:50",end:"10:40"},
-  {name:"3限",start:"10:50",end:"11:40"},
-  {name:"4限",start:"11:50",end:"12:40"},
-  {name:"昼休み",start:"12:40",end:"13:25"},
-  {name:"5限",start:"13:25",end:"14:15"},
-  {name:"6限",start:"14:25",end:"15:15"}
-);
-
-// ===== 雑談用 =====
-const aizuchi = [
-  "……そうなんだ。",
-  "なるほど。",
-  "……ふむ。",
-  "それで？"
-];
-const casualReplies = [
-  "……うん。聞いてる。",
-  "無理に話さなくてもいい。",
-  "少し落ち着こう。",
-  "続けて。"
+  {name:"1限",start:"08:50"},
+  {name:"2限",start:"09:50"},
+  {name:"3限",start:"10:50"},
+  {name:"4限",start:"11:50"},
+  {name:"昼休み",start:"12:40"},
+  {name:"5限",start:"13:25"},
+  {name:"6限",start:"14:25"}
 ];
 
-// ===== 当日メモリー（B）=====
+// ===== 雑談 =====
+const aizuchi = ["……そうなんだ。","なるほど。","……ふむ。","それで？"];
+const casual = ["……うん。聞いてる。","無理に話さなくてもいい。","続けて。"];
+
+// ===== メモリー =====
 const memory = {
-  tired: false,
-  mentionedClub: false,
-  name: null
+  tired:false,
+  name:null
 };
 
-// ===== 共通関数 =====
-function toMin(t){
-  const [h,m]=t.split(":").map(Number);
-  return h*60+m;
+// ===== 共通 =====
+function reply(t){
+  chat.innerHTML += `<div class="air">Air：${t}</div>`;
+  chat.scrollTop = chat.scrollHeight;
 }
-function nowMin(){
-  const d=new Date();
-  return d.getHours()*60+d.getMinutes();
-}
-function getWeekday(date=new Date()){
-  const d=date.getDay();
-  return d===0?7:d; // 日曜=7
-}
-function reply(text){
-  chat.innerHTML+=`<div class="air">Air：${text}</div>`;
-  chat.scrollTop=chat.scrollHeight;
-}
-function rand(arr){
-  return arr[Math.floor(Math.random()*arr.length)];
+function rand(a){ return a[Math.floor(Math.random()*a.length)]; }
+function toMin(t){ const [h,m]=t.split(":").map(Number); return h*60+m; }
+function nowMin(){ const d=new Date(); return d.getHours()*60+d.getMinutes(); }
+function wd(d=new Date()){ const n=d.getDay(); return n===0?7:n; }
+
+// ===== 起動時 =====
+window.onload = ()=>{
+  const h = new Date().getHours();
+  if(h < 10) reply("……おはよう。今日は無理しないで。");
+  else reply("……来たんだ。");
+  startIdleWatch();
+};
+
+// ===== 沈黙検知 =====
+let idleTimer;
+function startIdleWatch(){
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(()=>{
+    reply("……静かだね。");
+  }, 90000); // 90秒
 }
 
 // ===== メイン =====
 function send(){
+  startIdleWatch();
   const input=document.getElementById("input");
   const text=input.value.trim();
   if(!text) return;
-
-  chat.innerHTML+=`<div class="you">君：${text}</div>`;
+  chat.innerHTML += `<div class="you">君：${text}</div>`;
   input.value="";
 
-  const today=new Date();
-  const todayKey=getWeekday(today);
-  const tomorrowKey=getWeekday(new Date(today.getTime()+86400000));
+  const todayKey = wd();
+  const tomorrowKey = wd(new Date(Date.now()+86400000));
 
-  // 名前メモ（「俺は◯◯」など簡易）
-  if(text.includes("俺は") || text.includes("僕は")){
-    const name=text.split("は")[1];
-    if(name) memory.name=name.replace(/。/g,"").trim();
-  }
-
-  // 感謝
   if(text.includes("ありがとう")){
     reply("……どういたしまして。");
-    if(memory.tired){
-      setTimeout(()=>reply("さっき疲れてたよね。無理しないで。"),700);
-    }
+    if(memory.tired) setTimeout(()=>reply("さっき疲れてたよね。"),700);
   }
-
-  // 自己紹介
   else if(text.includes("自己紹介")){
     reply("私はAir。君の学校生活を、静かに支える存在。");
   }
-
-  // 疲れた
   else if(text.includes("疲れ")){
     memory.tired = true;
-    reply("……少し休んだほうがいい。無理は、よくない。");
+    reply("……少し休もう。");
   }
-
-  // 明日の時間割
   else if(text.includes("明日")){
-    const t=timetable[tomorrowKey];
-    if(!t){
-      reply("明日は休み。無理に考えなくていい。");
-    }else{
-      let msg="明日の時間割は、";
-      for(let i=1;i<=6;i++) msg+=`${i}限は${t[i]}、`;
-      reply(msg.slice(0,-1)+"。");
+    const t = timetable[tomorrowKey];
+    if(!t) reply("明日は休み。");
+    else{
+      let m="明日は、";
+      for(let i=1;i<=6;i++) m+=`${i}限は${t[i]}、`;
+      reply(m.slice(0,-1)+"。");
       setTimeout(()=>reply("放課後は部活。16時から18時まで。"),700);
     }
   }
-
-  // 次の授業
   else if(text.includes("次")){
     const now=nowMin();
-    const next=periods.find(p=>now<toMin(p.start));
-    if(!next){
-      reply("今日はもう終わり。おつかれさま。");
-    }else if(next.name==="昼休み"){
-      reply("次は昼休み。少し気を抜こう。");
-    }else{
-      const num=Number(next.name[0]);
-      reply(`次は${next.name}。${timetable[todayKey]?.[num] ?? "授業なし"}。`);
-    }
+    const p=periods.find(p=>now<toMin(p.start));
+    if(!p) reply("今日はもう終わり。");
+    else if(p.name==="昼休み") reply("次は昼休み。");
+    else reply(`次は${p.name}。${timetable[todayKey]?.[Number(p.name[0])] ?? ""}`);
   }
-
-  // 雑談トリガー
   else if(
-    text.includes("暇") ||
-    text.includes("学校") ||
-    text.includes("部活") ||
-    text.includes("眠") ||
-    text.includes("だる")
+    text.includes("暇")||text.includes("眠")||text.includes("部活")||text.includes("学校")
   ){
-    if(text.includes("部活")) memory.mentionedClub = true;
     reply(rand(aizuchi));
-    setTimeout(()=>{
-      let tail = rand(casualReplies);
-      if(memory.tired) tail += " ……今日は少し抑えめで。";
-      reply(tail);
-    },700);
+    setTimeout(()=>reply(rand(casual)),700);
   }
-
-  // デフォルト
   else{
-    reply(rand(casualReplies));
-    setTimeout(()=>{
-      if(memory.name){
-        reply(`${memory.name}、今日はどんな一日だった？`);
-      }else{
-        reply("今日は、どんな一日だった？");
-      }
-    },900);
+    reply(rand(casual));
+    setTimeout(()=>reply("今日は、どんな一日だった？"),900);
   }
 }
 </script>
