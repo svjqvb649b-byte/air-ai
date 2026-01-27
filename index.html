@@ -6,44 +6,37 @@
 <title>Air</title>
 
 <style>
-* {
-  box-sizing: border-box;
-}
-
 body {
   margin: 0;
   background: #0b1220;
   color: white;
   font-family: system-ui;
-  height: 100vh;
 }
 
 .container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
   padding: 20px;
+  max-width: 600px;
+  margin: auto;
 }
 
 .title {
   text-align: center;
-  font-size: 36px;
-  margin-top: 10px;
+  font-size: 42px;
+  margin-top: 20px;
 }
 
 .status {
   text-align: center;
   opacity: 0.7;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .chat {
-  flex: 1;
   background: rgba(0,0,0,0.3);
   border-radius: 16px;
-  padding: 15px;
+  padding: 16px;
+  min-height: 50vh;
   overflow-y: auto;
-  margin-bottom: 15px;
 }
 
 .you {
@@ -52,31 +45,29 @@ body {
 }
 
 .air {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .input-area {
   display: flex;
   gap: 10px;
+  margin-top: 16px;
 }
 
 input {
   flex: 1;
-  padding: 14px;
+  padding: 12px;
   border-radius: 20px;
   border: none;
   outline: none;
-  font-size: 16px;
 }
 
 button {
-  padding: 14px 18px;
+  padding: 12px 18px;
   border-radius: 20px;
   border: none;
   background: #4fc3f7;
-  color: black;
   font-weight: bold;
-  font-size: 16px;
 }
 </style>
 </head>
@@ -106,11 +97,11 @@ const periods = [
 ];
 
 const timetable = {
-  1: {1:"数学",2:"英語コミュ",3:"体育",4:"言語文化",5:"家庭"},
-  2: {1:"英語コミュ",2:"現代の国語",3:"数学",4:"保健",5:"公共"},
-  3: {1:"英語コミュ",2:"科学と人間生活",3:"言語文化",4:"歴史総合"},
-  4: {1:"音楽",2:"科学と人間生活",3:"情報Ⅰ",4:"家庭基礎"},
-  5: {1:"公共",2:"数学Ⅰ",3:"英語コミュ",4:"歴史総合"}
+  1: {1:"数学",2:"英語コミュ",3:"体育",4:"言語文化",5:"家庭基礎",6:"なし"},
+  2: {1:"英語コミュ",2:"現代の国語",3:"数学",4:"保健",5:"公共",6:"なし"},
+  3: {1:"英語コミュ",2:"科学と人間生活",3:"言語文化",4:"歴史総合",5:"なし",6:"なし"},
+  4: {1:"音楽",2:"科学と人間生活",3:"情報Ⅰ",4:"家庭基礎",5:"なし",6:"なし"},
+  5: {1:"公共",2:"数学Ⅰ",3:"英語コミュ",4:"歴史総合",5:"現代の国語",6:"なし"}
 };
 
 function nowMinutes() {
@@ -141,7 +132,7 @@ function reply(text) {
 
 function send() {
   const input = document.getElementById("input");
-  const text = input.value;
+  const text = input.value.trim();
   if (!text) return;
 
   const chat = document.getElementById("chat");
@@ -151,26 +142,45 @@ function send() {
   const today = timetable[day];
 
   if (text.includes("疲れ")) {
-    reply("……少し、休んだほうがいい。無理は好きじゃない。");
+    reply("……少し休もう。無理は、よくない。");
   }
+
+  else if (text.includes("自己紹介") || text.includes("君は誰")) {
+    reply("私はAir。君の時間割と日常を静かに見ている。必要な時に呼んで。");
+  }
+
+  else if (text.includes("暇")) {
+    reply("……そう。なら、少し話そう。");
+  }
+
+  else if (text.includes("元気")) {
+    reply("問題ない。君は？");
+  }
+
   else if (text.includes("次")) {
     const next = getNextPeriod();
-    if (!next) reply("今日はもう終わり。おつかれさま。");
-    else if (next.name === "昼休み") reply("次は昼休み。静かに過ごそう。");
-    else {
+    if (!next) {
+      reply("今日はもう終わり。おつかれさま。");
+    } else if (next.name === "昼休み") {
+      reply("次は昼休み。落ち着いて。");
+    } else {
       const num = Number(next.name[0]);
-      reply(`次は${next.name}。${today?.[num] ?? "授業なし"}。`);
+      reply(`次は${next.name}。${today[num] ?? "授業なし"}。`);
     }
   }
+
   else if (text.includes("今")) {
     const cur = getCurrentPeriod();
-    if (!cur) reply("今は授業時間じゃない。");
-    else if (cur.name === "昼休み") reply("今は昼休み。");
-    else {
+    if (!cur) {
+      reply("今は授業時間じゃない。");
+    } else if (cur.name === "昼休み") {
+      reply("今は昼休み。");
+    } else {
       const num = Number(cur.name[0]);
-      reply(`今は${cur.name}。${today?.[num] ?? "授業なし"}。`);
+      reply(`今は${cur.name}。${today[num] ?? "授業なし"}。`);
     }
   }
+
   else {
     reply("……うん。聞いてる。");
   }
