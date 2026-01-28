@@ -26,7 +26,8 @@ header {
   overflow-y: auto;
 }
 .user { color: #38bdf8; margin-bottom: 6px; }
-.air { color: #e5e7eb; margin-bottom: 14px; white-space: pre-line; }
+.air { color: #e5e7eb; margin-bottom: 6px; white-space: pre-line; }
+.noel { color: #c7d2fe; margin-bottom: 14px; font-size: 0.95em; }
 footer {
   display: flex;
   padding: 10px;
@@ -67,8 +68,8 @@ button {
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
 
-/* ===== ノエルの短期記憶 ===== */
-const noelMemory = []; // { text, type }
+/* ===== ノエル短期記憶 ===== */
+const noelMemory = [];
 
 /* ===== 時間割 ===== */
 const schedule = {
@@ -92,10 +93,10 @@ const periodsTime = [
 /* ===== 雑談 ===== */
 function getSmallTalk() {
   const talks = [
-    "……静かな時間も、嫌いじゃない。",
-    "……少し落ち着いた？",
-    "……今の流れ、悪くない。",
-    "……話してくれてる、それだけでいい。",
+    "……静かな時間も、悪くない。",
+    "……君のペースでいい。",
+    "……今日は、少し落ち着いてる。",
+    "……こうして話してるだけで十分。",
     "……無理に元気出さなくていい。"
   ];
   return talks[Math.floor(Math.random()*talks.length)];
@@ -117,45 +118,51 @@ function getCurrentPeriod(){
   return null;
 }
 
-/* =================================================
-   🧠 ノエル（短期記憶つき）
-   ================================================= */
+/* ===== ノエル思考 ===== */
 function noelThink(text){
   let type="通常";
   if(/疲れ|つかれ/.test(text)) type="感情";
   else if(/今|次|今日|明日/.test(text)) type="予定";
   else if(/雑談|暇|なんとなく/.test(text)) type="雑談";
 
-  // 記憶に追加
-  noelMemory.push({ text, type });
+  noelMemory.push({text,type});
   if(noelMemory.length>3) noelMemory.shift();
-
   return type;
 }
 
-/* =================================================
-   🤖 エア
-   ================================================= */
+/* ===== ノエル一言 ===== */
+function noelSpeak(){
+  const lines = [
+    "……ちゃんと話せてるよ。",
+    "無理しなくていい。",
+    "今の空気、嫌いじゃない。",
+    "少し落ち着いたね。",
+    "ここにいるよ。",
+    "大丈夫、そのままで。",
+    "今日はここまででもいい。"
+  ];
+  return lines[Math.floor(Math.random()*lines.length)];
+}
+
+/* ===== エア返答 ===== */
 function airReply(text){
   const today=getDayName();
   const tomorrow=getDayName(1);
   const period=getCurrentPeriod();
 
   const mode=noelThink(text);
-  const last=noelMemory[noelMemory.length-2];
-
   let reply="……うん。聞いてる。";
 
   if(mode==="感情"){
-    reply="……さっきから、少し無理してる気がする。休んで。";
+    reply="……無理しなくていい。今日は、よくやってる。";
   }
   else if(mode==="予定"){
-    if(/次/.test(text) && last?.type==="予定"){
+    if(/今/.test(text)){
+      reply=period?`今は${period}限。${schedule[today][period]}。`:"……今は授業の時間じゃない。";
+    }
+    else if(/次/.test(text)){
       const next=period?period+1:null;
       reply=next?`次は${next}限。${schedule[today][next]}。`:"……次はまだ先。";
-    }
-    else if(/今/.test(text)){
-      reply=period?`今は${period}限。${schedule[today][period]}。`:"……今は授業外。";
     }
     else if(/明日/.test(text)){
       reply=`明日は${tomorrow}。1限は${schedule[tomorrow][1]}。`;
@@ -172,8 +179,17 @@ function airReply(text){
 function send(){
   const text=input.value.trim();
   if(!text) return;
+
   chat.innerHTML+=`<div class="user">君 : ${text}</div>`;
-  chat.innerHTML+=`<div class="air">Air : ${airReply(text)}</div>`;
+
+  const airText = airReply(text);
+  chat.innerHTML+=`<div class="air">Air : ${airText}</div>`;
+
+  // ノエルがたまに出てくる（15%）
+  if(Math.random()<0.15){
+    chat.innerHTML+=`<div class="noel">Noel : ${noelSpeak()}</div>`;
+  }
+
   chat.scrollTop=chat.scrollHeight;
   input.value="";
 }
