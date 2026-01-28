@@ -1,168 +1,171 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Air</title>
+<meta charset="UTF-8" />
+<title>Air & Noel</title>
 <style>
-body{
-  margin:0;
-  background:linear-gradient(#0b1220,#020617);
-  color:#e5e7eb;
-  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-}
-#app{height:100vh;display:flex;flex-direction:column;}
-header{text-align:center;padding:14px;}
-#chat{flex:1;padding:16px;overflow-y:auto;}
-.user{color:#38bdf8;margin-bottom:6px;}
-.air{color:#e5e7eb;margin-bottom:4px;}
-.noel{color:#c7d2fe;margin-bottom:8px;font-size:.95em;}
-footer{display:flex;padding:10px;gap:8px;}
-input{flex:1;padding:10px;border-radius:20px;border:none;}
-button{padding:10px 16px;border-radius:20px;border:none;background:#38bdf8;color:#020617;}
+  body {
+    margin: 0;
+    background: linear-gradient(180deg, #020617, #020617);
+    color: #e5e7eb;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont;
+  }
+  #chat {
+    padding: 20px;
+    height: calc(100vh - 70px);
+    overflow-y: auto;
+  }
+  .you { color: #38bdf8; margin: 6px 0; }
+  .air { color: #e5e7eb; margin: 6px 0; }
+  .noel { color: #a5b4fc; margin: 6px 0; }
+  #inputArea {
+    display: flex;
+    padding: 10px;
+    background: #020617;
+  }
+  input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 20px;
+    border: none;
+    outline: none;
+  }
+  button {
+    margin-left: 10px;
+    padding: 0 18px;
+    border-radius: 20px;
+    border: none;
+    background: #38bdf8;
+    color: #020617;
+  }
 </style>
 </head>
-
 <body>
-<div id="app">
-<header>
-  <h1>Air</h1>
-  <p>エアとノエル</p>
-</header>
 
 <div id="chat"></div>
 
-<footer>
-  <input id="input" placeholder="話しかけて">
+<div id="inputArea">
+  <input id="text" placeholder="ここに話しかけて" />
   <button onclick="send()">送る</button>
-</footer>
 </div>
 
 <script>
-const chat=document.getElementById("chat");
-const input=document.getElementById("input");
+// ======================
+// 日本時間取得（ズレ修正）
+// ======================
+function getJSTDate() {
+  const now = new Date();
+  const jstOffset = 9 * 60;
+  const localOffset = now.getTimezoneOffset();
+  return new Date(now.getTime() + (jstOffset + localOffset) * 60000);
+}
 
-/* ===== 時間割 ===== */
-const schedule={
-  月曜日:{1:"数学Ⅰ",2:"英語コミュⅠ",3:"体育",4:"言語文化",5:"家庭基礎",6:"音楽Ⅰ"},
-  火曜日:{1:"英語コミュⅠ",2:"現代の国語",3:"数学Ⅰ",4:"保健",5:"公共",6:"総合"},
-  水曜日:{1:"英語コミュⅠ",2:"科学と人間生活",3:"言語文化",4:"歴史総合",5:"体育",6:"LHR"},
-  木曜日:{1:"音楽Ⅰ",2:"科学と人間生活",3:"情報Ⅰ",4:"家庭基礎",5:"体育",6:"数学Ⅰ"},
-  金曜日:{1:"公共",2:"数学Ⅰ",3:"英語コミュⅠ",4:"歴史総合",5:"現代の国語",6:"情報Ⅰ"}
+// ======================
+// 時間割データ
+// ======================
+const timetable = {
+  "月": ["数学Ⅰ","英語コミュⅠ","体育","言語文化","家庭基礎","音楽Ⅰ"],
+  "火": ["英語コミュⅠ","現代の国語","数学Ⅰ","保健","公共","総合"],
+  "水": ["英語コミュⅠ","科学と人間生活","言語文化","歴史総合","体育","LHR"],
+  "木": ["音楽Ⅰ","科学と人間生活","情報Ⅰ","家庭基礎","体育","数学Ⅰ"],
+  "金": ["公共","数学Ⅰ","英語コミュⅠ","歴史総合","現代の国語","情報Ⅰ"]
 };
 
-/* ===== 授業時間 ===== */
-const periodTime=[
-  {s:"08:50",e:"09:40"},
-  {s:"09:50",e:"10:40"},
-  {s:"10:50",e:"11:40"},
-  {s:"11:50",e:"12:40"},
-  {s:"13:25",e:"14:15"},
-  {s:"14:25",e:"15:15"}
-];
+const days = ["日","月","火","水","木","金","土"];
 
-/* ===== 時間系 ===== */
-function getDayName(o=0){
-  const d=new Date(); d.setDate(d.getDate()+o);
-  return ["日曜日","月曜日","火曜日","水曜日","木曜日","金曜日","土曜日"][d.getDay()];
-}
-function getNowMinutes(){
-  const n=new Date(); return n.getHours()*60+n.getMinutes();
-}
-function getCurrentPeriod(){
-  const now=getNowMinutes();
-  for(let i=0;i<periodTime.length;i++){
-    const [sh,sm]=periodTime[i].s.split(":").map(Number);
-    const [eh,em]=periodTime[i].e.split(":").map(Number);
-    if(now>=sh*60+sm && now<=eh*60+em) return i+1;
-  }
-  return null;
+// ======================
+// 表示
+// ======================
+const chat = document.getElementById("chat");
+function say(who, text) {
+  const div = document.createElement("div");
+  div.className = who;
+  div.textContent = text;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
 }
 
-/* ===== ノエル思考 ===== */
-function noelThink(text){
-  if(/疲れ|つかれ/.test(text)) return "感情";
-  if(/今|次|今日|明日|曜|限/.test(text)) return "予定";
-  if(/暇|雑談/.test(text)) return "雑談";
-  return "通常";
-}
+// ======================
+// メイン処理
+// ======================
+function send() {
+  const input = document.getElementById("text");
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = "";
 
-/* ===== 雑談 ===== */
-function smallTalk(){
-  const l=[
-    "……静かな時間だね。",
-    "……ちゃんと聞いてる。",
-    "……無理しなくていい。",
-    "……今の空気、悪くない。",
-    "……ここにいる。"
-  ];
-  return l[Math.floor(Math.random()*l.length)];
-}
+  say("you", "君： " + msg);
 
-/* ===== ノエル返答 ===== */
-function noelReply(text){
-  const m=noelThink(text);
-  if(m==="感情") return "無理しないで。ちゃんと分かってる。";
-  if(m==="予定") return "予定の話だね。エア、お願い。";
-  return "呼んでくれてありがとう。";
-}
+  const now = getJSTDate();
+  const day = days[now.getDay()];
+  const hour = now.getHours();
 
-/* ===== エア返答 ===== */
-function airReply(text){
-  const mode=noelThink(text);
-  const today=getDayName();
-  const tomorrow=getDayName(1);
-  const p=getCurrentPeriod();
+  let airReply = "……うん。聞いてる。";
+  let noelReply = "";
 
-  if(mode==="感情")
-    return "……無理しなくていい。今日は、よくやってる。";
+  // ===== 呼びかけ判定 =====
+  const callAir = msg.includes("エア");
+  const callNoel = msg.includes("ノエル");
 
-  if(mode==="雑談")
-    return smallTalk();
-
-  if(mode==="予定"){
-    if(/今/.test(text))
-      return p?`今は${p}限。${schedule[today][p]}。`:"……今は授業時間じゃない。";
-    if(/次/.test(text))
-      return p&&p<6?`次は${p+1}限。${schedule[today][p+1]}。`:"……次はもうない。";
-    if(/明日/.test(text))
-      return `明日は${tomorrow}。1限は${schedule[tomorrow][1]}。`;
-    for(const d in schedule){
-      if(text.includes(d))
-        return `${d}は1限${schedule[d][1]}、2限${schedule[d][2]}、3限${schedule[d][3]}…。`;
-    }
-  }
-  return "……うん。聞いてる。";
-}
-
-/* ===== 送信 ===== */
-function send(){
-  const text=input.value.trim();
-  if(!text) return;
-
-  chat.innerHTML+=`<div class="user">君 : ${text}</div>`;
-
-  const callAir=/エア/.test(text);
-  const callNoel=/ノエル/.test(text);
-
-  if(callAir){
-    chat.innerHTML+=`<div class="air">Air : ${airReply(text)}</div>`;
-  }
-  if(callNoel){
-    chat.innerHTML+=`<div class="noel">Noel : ${noelReply(text)}</div>`;
-  }
-
-  if(!callAir && !callNoel){
-    const air=airReply(text);
-    chat.innerHTML+=`<div class="air">Air : ${air}</div>`;
-    if(Math.random()<0.25){
-      chat.innerHTML+=`<div class="noel">Noel : ……その言い方でいい。</div>`;
+  // ===== 今日・予定 =====
+  if (msg.includes("今日")) {
+    airReply = `……今日は${day}曜日。`;
+    if (timetable[day]) {
+      airReply += ` 授業は${timetable[day].length}限まである。`;
     }
   }
 
-  chat.scrollTop=chat.scrollHeight;
-  input.value="";
+  // ===== 今何限 =====
+  if (msg.includes("今") && msg.includes("何限")) {
+    const period = hour < 9 ? 0 :
+                   hour < 10 ? 1 :
+                   hour < 11 ? 2 :
+                   hour < 12 ? 3 :
+                   hour < 14 ? 4 :
+                   hour < 15 ? 5 :
+                   hour < 16 ? 6 : 0;
+
+    if (period === 0) {
+      airReply = "……今は授業時間じゃない。";
+    } else {
+      airReply = `……今は${period}限。${timetable[day]?.[period-1] || ""}`;
+    }
+  }
+
+  // ===== 明日の時間割 =====
+  if (msg.includes("明日")) {
+    const tomorrow = days[(now.getDay()+1)%7];
+    if (timetable[tomorrow]) {
+      airReply = `……明日は${tomorrow}曜日。`;
+      noelReply = `時間割は ${timetable[tomorrow].join("、")} だよ。`;
+    }
+  }
+
+  // ===== 雑談 =====
+  if (msg.includes("疲れた")) {
+    airReply = "……無理しなくていい。";
+    noelReply = "ちゃんと休めてる？少し深呼吸しよ。";
+  }
+
+  // ===== 感情 =====
+  if (msg.includes("ありがとう")) {
+    airReply = "……どういたしまして。";
+    noelReply = "そう言ってもらえるの、嬉しいな。";
+  }
+
+  // ===== Noel割り込み（ランダム） =====
+  if (!noelReply && Math.random() < 0.3) {
+    noelReply = ["今日は寒いね。","ちゃんと朝ごはん食べた？","無理しすぎないでね。"][Math.floor(Math.random()*3)];
+  }
+
+  // ===== 出力 =====
+  if (callAir || !callNoel) say("air", "Air： " + airReply);
+  if (callNoel || noelReply) say("noel", "Noel： " + (noelReply || "呼んでくれてありがとう。"));
 }
+
+// 初期メッセージ
+say("air","Air： ……うん。ここにいる。");
+say("noel","Noel： おはよう。今日も一緒に話そう。");
 </script>
 </body>
 </html>
