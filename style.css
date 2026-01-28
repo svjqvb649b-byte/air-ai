@@ -3,6 +3,8 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
 }
 
 /* 全体コンテナ */
@@ -16,6 +18,7 @@ html, body {
 .chat-area {
   flex: 1;
   overflow-y: auto;
+  line-height: 1.6;
 }
 
 /* 入力欄 */
@@ -31,10 +34,10 @@ html, body {
   }
 
   .chat-area {
-    font-size: 15px;
+    font-size: 1rem;
   }
 
   .input-area input {
-    font-size: 16px;
+    font-size: 1rem;
   }
 }
