@@ -67,7 +67,7 @@ button {
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
 
-/* ====== 時間割 ====== */
+/* ===== 時間割 ===== */
 const schedule = {
   月曜日: {1:"数学Ⅰ",2:"英語コミュⅠ",3:"体育",4:"言語文化",5:"家庭基礎",6:"音楽Ⅰ"},
   火曜日: {1:"英語コミュⅠ",2:"現代の国語",3:"数学Ⅰ",4:"保健",5:"公共",6:"総合"},
@@ -76,7 +76,7 @@ const schedule = {
   金曜日: {1:"公共",2:"数学Ⅰ",3:"英語コミュⅠ",4:"歴史総合",5:"現代の国語",6:"情報Ⅰ"}
 };
 
-/* ====== 授業時間 ====== */
+/* ===== 授業時間 ===== */
 const periodsTime = [
   { start:"08:50", end:"09:40" },
   { start:"09:50", end:"10:40" },
@@ -86,12 +86,12 @@ const periodsTime = [
   { start:"14:25", end:"15:15" }
 ];
 
-/* ====== エアからの質問 ====== */
+/* ===== エアからの質問 ===== */
 const airQuestions = [
   "今日は、少し疲れてる？",
   "学校、どうだった？",
   "今は、静かに過ごしたい？",
-  "このあと、何か楽しみある？",
+  "このあと、何か予定ある？",
   "無理してない？"
 ];
 
@@ -102,24 +102,38 @@ function maybeAskBack() {
   return "";
 }
 
-/* ====== 今が何限か ====== */
+/* ===== 雑談レパートリー ===== */
+function getSmallTalk() {
+  const talks = [
+    "……静かな時間も、嫌いじゃない。",
+    "……こうして話してると、少し落ち着く。",
+    "……無理に話題を探さなくてもいい。",
+    "……君のペースでいい。",
+    "……今日は、空の色、見た？",
+    "……なんとなく過ごす日も、必要。",
+    "……今は、少し余裕がある感じ。",
+    "……こういう時間、悪くないと思う。",
+    "……話したいことがあれば、聞く。",
+    "……沈黙も、会話の一部。",
+    "……今日は少し、ゆっくり流れてる。",
+    "……君がここにいるなら、それでいい。"
+  ];
+  return talks[Math.floor(Math.random() * talks.length)];
+}
+
+/* ===== 今が何限か ===== */
 function getCurrentPeriod() {
   const now = new Date();
-  const h = now.getHours();
-  const m = now.getMinutes();
-  const nowMin = h*60 + m;
-
+  const nowMin = now.getHours()*60 + now.getMinutes();
   for (let i=0;i<periodsTime.length;i++) {
     const [sh,sm] = periodsTime[i].start.split(":").map(Number);
     const [eh,em] = periodsTime[i].end.split(":").map(Number);
-    if (nowMin >= sh*60+sm && nowMin <= eh*60+em) {
-      return i+1;
-    }
+    if (nowMin >= sh*60+sm && nowMin <= eh*60+em) return i+1;
   }
   return null;
 }
 
-/* ====== 曜日取得 ====== */
+/* ===== 曜日取得 ===== */
 function getDayName(offset=0) {
   const days = ["日曜日","月曜日","火曜日","水曜日","木曜日","金曜日","土曜日"];
   const d = new Date();
@@ -127,7 +141,7 @@ function getDayName(offset=0) {
   return days[d.getDay()];
 }
 
-/* ====== エア返答 ====== */
+/* ===== エア返答 ===== */
 function airReply(text) {
   let reply = "……うん。聞いてる。";
   const today = getDayName();
@@ -135,7 +149,7 @@ function airReply(text) {
   const period = getCurrentPeriod();
 
   if (/疲れ/.test(text)) reply = "……無理しないで。少し休んで。";
-  else if (/ありがとう/.test(text)) reply = "……どういたしまして。";
+  else if (/ありがとう|感謝/.test(text)) reply = "……どういたしまして。";
   else if (/今何限|今なに/.test(text)) {
     reply = period ? `今は${period}限。${schedule[today][period]}。` : "……今は授業の時間じゃない。";
   }
@@ -148,20 +162,22 @@ function airReply(text) {
   else if (/今日/.test(text)) {
     reply = schedule[today]
       ? `今日は${today}。${Object.values(schedule[today]).join("、")}。`
-      : "……今日は学校はない日。";
+      : "……今日はお休み。";
   }
   else if (/明日/.test(text)) {
     reply = schedule[tomorrow]
       ? `明日は${tomorrow}。1限は${schedule[tomorrow][1]}。`
       : "……明日はお休み。";
   }
-  else if (/雑談|話/.test(text)) reply = "……こうして話してるだけでも、悪くない。";
+  else if (/雑談|話|ひま|暇|なんとなく|特にない|普通|まあまあ/.test(text)) {
+    reply = getSmallTalk();
+  }
 
   reply += maybeAskBack();
   return reply;
 }
 
-/* ====== 送信 ====== */
+/* ===== 送信 ===== */
 function send() {
   const text = input.value.trim();
   if (!text) return;
