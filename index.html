@@ -1,204 +1,185 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Air</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Air</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0b1320;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    #chat {
+      padding: 20px;
+      padding-bottom: 90px;
+      line-height: 1.6;
+    }
+    .user { color: #4fc3ff; margin-top: 10px; }
+    .air { margin-top: 4px; }
 
-<style>
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont;
-  background: linear-gradient(180deg, #0b1320, #060a12);
-  color: #fff;
-}
-
-header {
-  text-align: center;
-  padding: 24px 0 12px;
-}
-
-header h1 {
-  margin: 0;
-  font-size: 40px;
-}
-
-header p {
-  margin: 6px 0 0;
-  opacity: 0.6;
-}
-
-#chat {
-  padding: 20px;
-  padding-bottom: 120px;
-  max-width: 720px;
-  margin: auto;
-}
-
-.msg {
-  margin-bottom: 14px;
-  line-height: 1.6;
-}
-
-.user {
-  color: #4fc3ff;
-}
-
-.air {
-  color: #ffffff;
-}
-
-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #0b1320;
-  padding: 12px;
-  display: flex;
-  gap: 10px;
-}
-
-input {
-  flex: 1;
-  padding: 14px;
-  border-radius: 14px;
-  border: none;
-  font-size: 16px;
-}
-
-button {
-  padding: 14px 20px;
-  border-radius: 14px;
-  border: none;
-  background: #4fc3ff;
-  color: #000;
-  font-size: 16px;
-}
-</style>
+    #inputArea {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: #0b1320;
+      padding: 10px;
+      display: flex;
+      gap: 10px;
+    }
+    input {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+    }
+    button {
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: none;
+      background: #4fc3ff;
+      color: #000;
+      font-size: 16px;
+    }
+  </style>
 </head>
-
 <body>
-
-<header>
-  <h1>Air</h1>
-  <p>待機中</p>
-</header>
 
 <div id="chat"></div>
 
-<footer>
+<div id="inputArea">
   <input id="input" placeholder="ここに話しかけて" />
   <button onclick="send()">送る</button>
-</footer>
+</div>
 
 <script>
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
 
-function add(role, text) {
+// ===== 曜日別時間割 =====
+const weeklyTimetable = {
+  1: { // 月
+    1: "英語コミュ",
+    2: "数学",
+    3: "国語",
+    4: "理科",
+    5: "社会",
+    6: "体育"
+  },
+  2: { // 火
+    1: "数学",
+    2: "英語",
+    3: "理科",
+    4: "国語",
+    5: "音楽",
+    6: "体育"
+  },
+  3: { // 水
+    1: "英語コミュ",
+    2: "社会",
+    3: "数学",
+    4: "理科"
+  },
+  4: { // 木
+    1: "国語",
+    2: "数学",
+    3: "英語",
+    4: "社会",
+    5: "理科",
+    6: "LHR"
+  },
+  5: { // 金
+    1: "数学",
+    2: "英語",
+    3: "国語",
+    4: "体育",
+    5: "理科",
+    6: "総合"
+  }
+};
+
+const clubTime = "部活は16時から18時まで。";
+
+// ===== 表示 =====
+function addMessage(text, cls) {
   const div = document.createElement("div");
-  div.className = "msg " + role;
-  div.textContent = (role === "user" ? "君： " : "Air： ") + text;
+  div.className = cls;
+  div.textContent = text;
   chat.appendChild(div);
   window.scrollTo(0, document.body.scrollHeight);
 }
 
-/* ===== 時間割データ ===== */
-const timetable = {
-  "月": ["数学Ⅰ","英語コミュⅠ","体育","言語文化","家庭基礎","音楽Ⅰ"],
-  "火": ["英語コミュⅠ","現代の国語","数学Ⅰ","保健","公共","総合"],
-  "水": ["英語コミュⅠ","科学と人間生活","言語文化","歴史総合","体育","LHR"],
-  "木": ["音楽Ⅰ","科学と人間生活","情報Ⅰ","家庭基礎","体育","数学Ⅰ"],
-  "金": ["公共","数学Ⅰ","英語コミュⅠ","歴史総合","現代の国語","情報Ⅰ"]
-};
+// ===== 時刻 → 限 =====
+function getCurrentPeriod() {
+  const h = new Date().getHours();
+  if (h < 9) return 1;
+  if (h < 10) return 2;
+  if (h < 11) return 3;
+  if (h < 12) return 4;
+  if (h < 14) return 5;
+  return 6;
+}
 
-const periods = [
-  {num:1, start: "08:50", end:"09:40"},
-  {num:2, start: "09:50", end:"10:40"},
-  {num:3, start: "10:50", end:"11:40"},
-  {num:4, start: "11:50", end:"12:40"},
-  {num:5, start: "13:25", end:"14:15"},
-  {num:6, start: "14:25", end:"15:15"}
-];
-
-function toMin(t){ const [h,m]=t.split(":").map(Number); return h*60+m; }
-
-function getNextPeriod() {
-  const now = new Date();
-  const cur = now.getHours()*60 + now.getMinutes();
-  for (let p of periods) {
-    if (cur < toMin(p.start)) return p.num;
-  }
+// ===== 雑談 =====
+function smallTalk(text) {
+  if (/ありがとう/.test(text)) return "……どういたしまして。";
+  if (/ごめん/.test(text)) return "……気にしなくていい。";
+  if (/疲れた|しんどい/.test(text)) return "……少し休もう。無理はしないで。";
+  if (/聞いてる/.test(text)) return "……うん。ちゃんと聞いてる。";
+  if (/おはよう/.test(text)) return "……おはよう。今日は無理しないで。";
   return null;
 }
 
-function getTodayKey(offset=0){
-  const d = new Date();
-  d.setDate(d.getDate()+offset);
-  return ["日","月","火","水","木","金","土"][d.getDay()];
-}
+// ===== メイン =====
+function reply(text) {
+  const today = new Date().getDay(); // 日0 月1
+  const dayTable = weeklyTimetable[today];
 
-/* ===== 会話処理 ===== */
-function reply(msg){
-  msg = msg.toLowerCase();
-
-  // あいさつ
-  if (/おはよ/.test(msg)) return "……おはよう。今日は無理しないで。";
-  if (/ありがとう/.test(msg)) return "……どういたしまして。";
-
-  // 自己紹介
-  if (/自己紹介/.test(msg)) {
-    return "私はAir。君の学校生活を、静かに支える存在。";
-  }
-
-  // 次なに？
-  if (/次/.test(msg)) {
-    const n = getNextPeriod();
-    if (!n) return "今日はもう授業は終わってる。";
-    const day = getTodayKey();
-    return `次は${n}限。${timetable[day]?.[n-1] || "授業なし"}。`;
-  }
-
-  // ○限目なに？
-  const m = msg.match(/([1-6])限/);
-  if (m) {
-    const day = getTodayKey();
-    return `${m[1]}限は${timetable[day]?.[m[1]-1] || "授業なし"}。`;
-  }
+  // 雑談優先
+  const talk = smallTalk(text);
+  if (talk) return talk;
 
   // 今日の時間割
-  if (/今日.*時間割/.test(msg)) {
-    const day = getTodayKey();
-    return timetable[day]?.map((s,i)=>`${i+1}限：${s}`).join("、");
+  if (/今日.*時間割/.test(text)) {
+    if (!dayTable) return "……今日は休み。";
+    return "……今日は" + Object.values(dayTable).join("、") + "。";
   }
 
-  // 明日の時間割
-  if (/明日.*時間割/.test(msg)) {
-    const day = getTodayKey(1);
-    if (day==="日") return "明日は休み。";
-    return timetable[day]?.map((s,i)=>`${i+1}限：${s}`).join("、");
+  // ○限
+  const m = text.match(/(\d)限/);
+  if (m && dayTable) {
+    const p = Number(m[1]);
+    return dayTable[p]
+      ? `${p}限は${dayTable[p]}。`
+      : "……その時間はない。";
+  }
+
+  // 次の授業
+  if (/次/.test(text) && dayTable) {
+    const p = getCurrentPeriod();
+    return dayTable[p]
+      ? `次は${p}限。${dayTable[p]}。`
+      : "……もう授業は終わってる。";
   }
 
   // 部活
-  if (/部活/.test(msg)) return "部活は16時から18時まで。";
+  if (/部活/.test(text)) return clubTime;
 
-  // 雑談
-  if (/疲/.test(msg)) return "……少し休んでもいい。無理はしないで。";
-
-  return "……うん。聞いてる。";
+  return "……うん。ここにいる。";
 }
 
-function send(){
+// ===== 送信 =====
+function send() {
   const text = input.value.trim();
   if (!text) return;
-  add("user", text);
+  addMessage("君 : " + text, "user");
   input.value = "";
-  setTimeout(()=>add("air", reply(text)), 400);
+  setTimeout(() => addMessage("Air : " + reply(text), "air"), 400);
 }
 
-// 初期メッセージ
-add("air","……おはよう。今日は無理しないで。");
+addMessage("Air : ……おはよう。", "air");
 </script>
 
 </body>
