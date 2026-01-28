@@ -67,13 +67,16 @@ button {
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
 
+/* ===== ノエルの短期記憶 ===== */
+const noelMemory = []; // { text, type }
+
 /* ===== 時間割 ===== */
 const schedule = {
-  月曜日: {1:"数学Ⅰ",2:"英語コミュⅠ",3:"体育",4:"言語文化",5:"家庭基礎",6:"音楽Ⅰ"},
-  火曜日: {1:"英語コミュⅠ",2:"現代の国語",3:"数学Ⅰ",4:"保健",5:"公共",6:"総合"},
-  水曜日: {1:"英語コミュⅠ",2:"科学と人間生活",3:"言語文化",4:"歴史総合",5:"体育",6:"LHR"},
-  木曜日: {1:"音楽Ⅰ",2:"科学と人間生活",3:"情報Ⅰ",4:"家庭基礎",5:"体育",6:"数学Ⅰ"},
-  金曜日: {1:"公共",2:"数学Ⅰ",3:"英語コミュⅠ",4:"歴史総合",5:"現代の国語",6:"情報Ⅰ"}
+  月曜日:{1:"数学Ⅰ",2:"英語コミュⅠ",3:"体育",4:"言語文化",5:"家庭基礎",6:"音楽Ⅰ"},
+  火曜日:{1:"英語コミュⅠ",2:"現代の国語",3:"数学Ⅰ",4:"保健",5:"公共",6:"総合"},
+  水曜日:{1:"英語コミュⅠ",2:"科学と人間生活",3:"言語文化",4:"歴史総合",5:"体育",6:"LHR"},
+  木曜日:{1:"音楽Ⅰ",2:"科学と人間生活",3:"情報Ⅰ",4:"家庭基礎",5:"体育",6:"数学Ⅰ"},
+  金曜日:{1:"公共",2:"数学Ⅰ",3:"英語コミュⅠ",4:"歴史総合",5:"現代の国語",6:"情報Ⅰ"}
 };
 
 /* ===== 授業時間 ===== */
@@ -86,126 +89,93 @@ const periodsTime = [
   { start:"14:25", end:"15:15" }
 ];
 
-/* ===== エアからの質問 ===== */
-const airQuestions = [
-  "今日は、少し疲れてる？",
-  "学校、どうだった？",
-  "今は、静かに過ごしたい？",
-  "このあと、何か予定ある？",
-  "無理してない？"
-];
-
-function maybeAskBack() {
-  if (Math.random() < 0.3) {
-    return "\n\nAir : " + airQuestions[Math.floor(Math.random()*airQuestions.length)];
-  }
-  return "";
-}
-
-/* ===== 雑談レパートリー ===== */
+/* ===== 雑談 ===== */
 function getSmallTalk() {
   const talks = [
     "……静かな時間も、嫌いじゃない。",
-    "……こうして話してると、少し落ち着く。",
-    "……無理に話題を探さなくてもいい。",
-    "……君のペースでいい。",
-    "……今日は、空の色、見た？",
-    "……なんとなく過ごす日も、必要。",
-    "……今は、少し余裕がある感じ。",
-    "……こういう時間、悪くないと思う。",
-    "……話したいことがあれば、聞く。",
-    "……沈黙も、会話の一部。"
+    "……少し落ち着いた？",
+    "……今の流れ、悪くない。",
+    "……話してくれてる、それだけでいい。",
+    "……無理に元気出さなくていい。"
   ];
-  return talks[Math.floor(Math.random() * talks.length)];
+  return talks[Math.floor(Math.random()*talks.length)];
 }
 
-/* ===== 今が何限か ===== */
-function getCurrentPeriod() {
-  const now = new Date();
-  const nowMin = now.getHours()*60 + now.getMinutes();
-  for (let i=0;i<periodsTime.length;i++) {
-    const [sh,sm] = periodsTime[i].start.split(":").map(Number);
-    const [eh,em] = periodsTime[i].end.split(":").map(Number);
-    if (nowMin >= sh*60+sm && nowMin <= eh*60+em) return i+1;
+/* ===== 曜日・時間 ===== */
+function getDayName(offset=0){
+  const days=["日曜日","月曜日","火曜日","水曜日","木曜日","金曜日","土曜日"];
+  const d=new Date(); d.setDate(d.getDate()+offset);
+  return days[d.getDay()];
+}
+function getCurrentPeriod(){
+  const n=new Date(), m=n.getHours()*60+n.getMinutes();
+  for(let i=0;i<periodsTime.length;i++){
+    const [sh,sm]=periodsTime[i].start.split(":").map(Number);
+    const [eh,em]=periodsTime[i].end.split(":").map(Number);
+    if(m>=sh*60+sm && m<=eh*60+em) return i+1;
   }
   return null;
 }
 
-/* ===== 曜日取得 ===== */
-function getDayName(offset=0) {
-  const days = ["日曜日","月曜日","火曜日","水曜日","木曜日","金曜日","土曜日"];
-  const d = new Date();
-  d.setDate(d.getDate()+offset);
-  return days[d.getDay()];
+/* =================================================
+   🧠 ノエル（短期記憶つき）
+   ================================================= */
+function noelThink(text){
+  let type="通常";
+  if(/疲れ|つかれ/.test(text)) type="感情";
+  else if(/今|次|今日|明日/.test(text)) type="予定";
+  else if(/雑談|暇|なんとなく/.test(text)) type="雑談";
+
+  // 記憶に追加
+  noelMemory.push({ text, type });
+  if(noelMemory.length>3) noelMemory.shift();
+
+  return type;
 }
 
-/* ==================================================
-   🧠 ノエル（内部思考・表示されない）
-   ================================================== */
-function noelThink(userText, context) {
-  if (/疲れ|つかれ/.test(userText)) return "感情優先";
-  if (/ありがとう|感謝/.test(userText)) return "感謝対応";
-  if (/今何限|今なに|次|今日|明日/.test(userText)) return "予定優先";
-  if (/雑談|話|ひま|暇|なんとなく|普通|まあまあ/.test(userText)) return "雑談モード";
-  return "通常";
-}
+/* =================================================
+   🤖 エア
+   ================================================= */
+function airReply(text){
+  const today=getDayName();
+  const tomorrow=getDayName(1);
+  const period=getCurrentPeriod();
 
-/* ==================================================
-   🤖 エア（表示される返答）
-   ================================================== */
-function airReply(text) {
-  const today = getDayName();
-  const tomorrow = getDayName(1);
-  const period = getCurrentPeriod();
+  const mode=noelThink(text);
+  const last=noelMemory[noelMemory.length-2];
 
-  // 内部でノエルに相談
-  const advice = noelThink(text, { today, period });
+  let reply="……うん。聞いてる。";
 
-  let reply = "……うん。聞いてる。";
-
-  if (advice === "感情優先") {
-    reply = "……無理しなくていい。ちゃんと、今の気持ち聞いてる。";
+  if(mode==="感情"){
+    reply="……さっきから、少し無理してる気がする。休んで。";
   }
-  else if (advice === "感謝対応") {
-    reply = "……どういたしまして。";
-  }
-  else if (advice === "予定優先") {
-    if (/今何限|今なに/.test(text)) {
-      reply = period ? `今は${period}限。${schedule[today][period]}。` : "……今は授業の時間じゃない。";
+  else if(mode==="予定"){
+    if(/次/.test(text) && last?.type==="予定"){
+      const next=period?period+1:null;
+      reply=next?`次は${next}限。${schedule[today][next]}。`:"……次はまだ先。";
     }
-    else if (/次/.test(text)) {
-      const next = period ? period+1 : null;
-      reply = next && schedule[today]?.[next]
-        ? `次は${next}限。${schedule[today][next]}。`
-        : "……次の授業までは、少し時間がある。";
+    else if(/今/.test(text)){
+      reply=period?`今は${period}限。${schedule[today][period]}。`:"……今は授業外。";
     }
-    else if (/今日/.test(text)) {
-      reply = schedule[today]
-        ? `今日は${today}。${Object.values(schedule[today]).join("、")}。`
-        : "……今日はお休み。";
-    }
-    else if (/明日/.test(text)) {
-      reply = schedule[tomorrow]
-        ? `明日は${tomorrow}。1限は${schedule[tomorrow][1]}。`
-        : "……明日はお休み。";
+    else if(/明日/.test(text)){
+      reply=`明日は${tomorrow}。1限は${schedule[tomorrow][1]}。`;
     }
   }
-  else if (advice === "雑談モード") {
-    reply = getSmallTalk();
+  else if(mode==="雑談"){
+    reply=getSmallTalk();
   }
 
-  reply += maybeAskBack();
   return reply;
 }
 
 /* ===== 送信 ===== */
-function send() {
-  const text = input.value.trim();
-  if (!text) return;
-  chat.innerHTML += `<div class="user">君 : ${text}</div>`;
-  chat.innerHTML += `<div class="air">Air : ${airReply(text)}</div>`;
-  chat.scrollTop = chat.scrollHeight;
-  input.value = "";
+function send(){
+  const text=input.value.trim();
+  if(!text) return;
+  chat.innerHTML+=`<div class="user">君 : ${text}</div>`;
+  chat.innerHTML+=`<div class="air">Air : ${airReply(text)}</div>`;
+  chat.scrollTop=chat.scrollHeight;
+  input.value="";
 }
 </script>
 </body>
