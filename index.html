@@ -114,9 +114,7 @@ function getSmallTalk() {
     "……今は、少し余裕がある感じ。",
     "……こういう時間、悪くないと思う。",
     "……話したいことがあれば、聞く。",
-    "……沈黙も、会話の一部。",
-    "……今日は少し、ゆっくり流れてる。",
-    "……君がここにいるなら、それでいい。"
+    "……沈黙も、会話の一部。"
   ];
   return talks[Math.floor(Math.random() * talks.length)];
 }
@@ -141,35 +139,58 @@ function getDayName(offset=0) {
   return days[d.getDay()];
 }
 
-/* ===== エア返答 ===== */
+/* ==================================================
+   🧠 ノエル（内部思考・表示されない）
+   ================================================== */
+function noelThink(userText, context) {
+  if (/疲れ|つかれ/.test(userText)) return "感情優先";
+  if (/ありがとう|感謝/.test(userText)) return "感謝対応";
+  if (/今何限|今なに|次|今日|明日/.test(userText)) return "予定優先";
+  if (/雑談|話|ひま|暇|なんとなく|普通|まあまあ/.test(userText)) return "雑談モード";
+  return "通常";
+}
+
+/* ==================================================
+   🤖 エア（表示される返答）
+   ================================================== */
 function airReply(text) {
-  let reply = "……うん。聞いてる。";
   const today = getDayName();
   const tomorrow = getDayName(1);
   const period = getCurrentPeriod();
 
-  if (/疲れ/.test(text)) reply = "……無理しないで。少し休んで。";
-  else if (/ありがとう|感謝/.test(text)) reply = "……どういたしまして。";
-  else if (/今何限|今なに/.test(text)) {
-    reply = period ? `今は${period}限。${schedule[today][period]}。` : "……今は授業の時間じゃない。";
+  // 内部でノエルに相談
+  const advice = noelThink(text, { today, period });
+
+  let reply = "……うん。聞いてる。";
+
+  if (advice === "感情優先") {
+    reply = "……無理しなくていい。ちゃんと、今の気持ち聞いてる。";
   }
-  else if (/次/.test(text)) {
-    const next = period ? period+1 : null;
-    reply = next && schedule[today]?.[next]
-      ? `次は${next}限。${schedule[today][next]}。`
-      : "……次の授業までは、少し時間がある。";
+  else if (advice === "感謝対応") {
+    reply = "……どういたしまして。";
   }
-  else if (/今日/.test(text)) {
-    reply = schedule[today]
-      ? `今日は${today}。${Object.values(schedule[today]).join("、")}。`
-      : "……今日はお休み。";
+  else if (advice === "予定優先") {
+    if (/今何限|今なに/.test(text)) {
+      reply = period ? `今は${period}限。${schedule[today][period]}。` : "……今は授業の時間じゃない。";
+    }
+    else if (/次/.test(text)) {
+      const next = period ? period+1 : null;
+      reply = next && schedule[today]?.[next]
+        ? `次は${next}限。${schedule[today][next]}。`
+        : "……次の授業までは、少し時間がある。";
+    }
+    else if (/今日/.test(text)) {
+      reply = schedule[today]
+        ? `今日は${today}。${Object.values(schedule[today]).join("、")}。`
+        : "……今日はお休み。";
+    }
+    else if (/明日/.test(text)) {
+      reply = schedule[tomorrow]
+        ? `明日は${tomorrow}。1限は${schedule[tomorrow][1]}。`
+        : "……明日はお休み。";
+    }
   }
-  else if (/明日/.test(text)) {
-    reply = schedule[tomorrow]
-      ? `明日は${tomorrow}。1限は${schedule[tomorrow][1]}。`
-      : "……明日はお休み。";
-  }
-  else if (/雑談|話|ひま|暇|なんとなく|特にない|普通|まあまあ/.test(text)) {
+  else if (advice === "雑談モード") {
     reply = getSmallTalk();
   }
 
