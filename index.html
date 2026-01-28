@@ -1,73 +1,80 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Air</title>
 
 <style>
-  body {
-    margin: 0;
-    background: #0b1220;
-    color: #fff;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-  }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+  background: linear-gradient(180deg, #0b1320, #060a12);
+  color: #fff;
+}
 
-  header {
-    text-align: center;
-    padding: 20px 0 10px;
-  }
+header {
+  text-align: center;
+  padding: 24px 0 12px;
+}
 
-  header h1 {
-    margin: 0;
-    font-weight: 400;
-  }
+header h1 {
+  margin: 0;
+  font-size: 40px;
+}
 
-  header p {
-    margin: 4px 0 0;
-    opacity: 0.6;
-  }
+header p {
+  margin: 6px 0 0;
+  opacity: 0.6;
+}
 
-  #chat {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px;
-  }
+#chat {
+  padding: 20px;
+  padding-bottom: 120px;
+  max-width: 720px;
+  margin: auto;
+}
 
-  .line {
-    margin-bottom: 10px;
-    line-height: 1.6;
-  }
+.msg {
+  margin-bottom: 14px;
+  line-height: 1.6;
+}
 
-  .you {
-    color: #4cc3ff;
-  }
+.user {
+  color: #4fc3ff;
+}
 
-  footer {
-    display: flex;
-    padding: 10px;
-    gap: 8px;
-  }
+.air {
+  color: #ffffff;
+}
 
-  input {
-    flex: 1;
-    padding: 10px;
-    border-radius: 8px;
-    border: none;
-    font-size: 16px;
-  }
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #0b1320;
+  padding: 12px;
+  display: flex;
+  gap: 10px;
+}
 
-  button {
-    padding: 10px 14px;
-    border-radius: 8px;
-    border: none;
-    background: #4cc3ff;
-    color: #000;
-    font-size: 16px;
-  }
+input {
+  flex: 1;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-size: 16px;
+}
+
+button {
+  padding: 14px 20px;
+  border-radius: 14px;
+  border: none;
+  background: #4fc3ff;
+  color: #000;
+  font-size: 16px;
+}
 </style>
 </head>
 
@@ -81,115 +88,117 @@
 <div id="chat"></div>
 
 <footer>
-  <input id="input" placeholder="ここに話しかけて">
+  <input id="input" placeholder="ここに話しかけて" />
   <button onclick="send()">送る</button>
 </footer>
 
 <script>
 const chat = document.getElementById("chat");
+const input = document.getElementById("input");
 
-function addLine(text, cls = "") {
+function add(role, text) {
   const div = document.createElement("div");
-  div.className = "line " + cls;
-  div.textContent = text;
+  div.className = "msg " + role;
+  div.textContent = (role === "user" ? "君： " : "Air： ") + text;
   chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
-}
-
-function reply(text) {
-  addLine("Air : " + text);
-}
-
-function send() {
-  const input = document.getElementById("input");
-  const msg = input.value.trim();
-  if (!msg) return;
-  addLine("君 : " + msg, "you");
-  input.value = "";
-  respond(msg);
+  window.scrollTo(0, document.body.scrollHeight);
 }
 
 /* ===== 時間割データ ===== */
 const timetable = {
-  "月": ["数学Ⅰ", "英語コミュⅠ", "体育", "言語文化", "家庭基礎", "音楽Ⅰ"],
-  "火": ["英語コミュⅠ", "現代の国語", "数学Ⅰ", "保健", "公共", "総合"],
-  "水": ["英語コミュⅠ", "科学と人間生活", "言語文化", "歴史総合", "体育", "LHR"],
-  "木": ["音楽Ⅰ", "科学と人間生活", "情報Ⅰ", "家庭基礎", "体育", "数学Ⅰ"],
-  "金": ["公共", "数学Ⅰ", "英語コミュⅠ", "歴史総合", "現代の国語", "情報Ⅰ"]
+  "月": ["数学Ⅰ","英語コミュⅠ","体育","言語文化","家庭基礎","音楽Ⅰ"],
+  "火": ["英語コミュⅠ","現代の国語","数学Ⅰ","保健","公共","総合"],
+  "水": ["英語コミュⅠ","科学と人間生活","言語文化","歴史総合","体育","LHR"],
+  "木": ["音楽Ⅰ","科学と人間生活","情報Ⅰ","家庭基礎","体育","数学Ⅰ"],
+  "金": ["公共","数学Ⅰ","英語コミュⅠ","歴史総合","現代の国語","情報Ⅰ"]
 };
 
-function todayKey(offset = 0) {
-  const days = ["日","月","火","水","木","金","土"];
+const periods = [
+  {num:1, start: "08:50", end:"09:40"},
+  {num:2, start: "09:50", end:"10:40"},
+  {num:3, start: "10:50", end:"11:40"},
+  {num:4, start: "11:50", end:"12:40"},
+  {num:5, start: "13:25", end:"14:15"},
+  {num:6, start: "14:25", end:"15:15"}
+];
+
+function toMin(t){ const [h,m]=t.split(":").map(Number); return h*60+m; }
+
+function getNextPeriod() {
+  const now = new Date();
+  const cur = now.getHours()*60 + now.getMinutes();
+  for (let p of periods) {
+    if (cur < toMin(p.start)) return p.num;
+  }
+  return null;
+}
+
+function getTodayKey(offset=0){
   const d = new Date();
-  d.setDate(d.getDate() + offset);
-  return days[d.getDay()];
+  d.setDate(d.getDate()+offset);
+  return ["日","月","火","水","木","金","土"][d.getDay()];
 }
 
-/* ===== 応答ロジック ===== */
-function respond(msg) {
+/* ===== 会話処理 ===== */
+function reply(msg){
+  msg = msg.toLowerCase();
 
-  if (msg.includes("自己紹介")) {
-    reply("私はAir。君の学校生活を、静かに支える存在。");
-    return;
+  // あいさつ
+  if (/おはよ/.test(msg)) return "……おはよう。今日は無理しないで。";
+  if (/ありがとう/.test(msg)) return "……どういたしまして。";
+
+  // 自己紹介
+  if (/自己紹介/.test(msg)) {
+    return "私はAir。君の学校生活を、静かに支える存在。";
   }
 
-  if (msg.includes("ありがとう")) {
-    reply("……どういたしまして。");
-    return;
+  // 次なに？
+  if (/次/.test(msg)) {
+    const n = getNextPeriod();
+    if (!n) return "今日はもう授業は終わってる。";
+    const day = getTodayKey();
+    return `次は${n}限。${timetable[day]?.[n-1] || "授業なし"}。`;
   }
 
-  if (msg.includes("疲れた")) {
-    reply("……無理しないで。今は休んで。");
-    return;
+  // ○限目なに？
+  const m = msg.match(/([1-6])限/);
+  if (m) {
+    const day = getTodayKey();
+    return `${m[1]}限は${timetable[day]?.[m[1]-1] || "授業なし"}。`;
   }
 
-  if (msg.includes("次なに")) {
-    reply("次は1限。英語コミュⅠ。");
-    return;
+  // 今日の時間割
+  if (/今日.*時間割/.test(msg)) {
+    const day = getTodayKey();
+    return timetable[day]?.map((s,i)=>`${i+1}限：${s}`).join("、");
   }
 
-  if (msg.includes("今日の時間割")) {
-    const day = todayKey();
-    if (!timetable[day]) {
-      reply("今日は授業はない。");
-      return;
-    }
-    reply("今日は、" + timetable[day].join("、") + "。");
-    return;
+  // 明日の時間割
+  if (/明日.*時間割/.test(msg)) {
+    const day = getTodayKey(1);
+    if (day==="日") return "明日は休み。";
+    return timetable[day]?.map((s,i)=>`${i+1}限：${s}`).join("、");
   }
 
-  if (msg.includes("明日")) {
-    const day = todayKey(1);
-    reply("明日は、" + timetable[day].join("、") + "。");
-    return;
-  }
+  // 部活
+  if (/部活/.test(msg)) return "部活は16時から18時まで。";
 
-  for (let d in timetable) {
-    if (msg.includes(d + "曜日")) {
-      reply(d + "曜日は、" + timetable[d].join("、") + "。");
-      return;
-    }
-  }
+  // 雑談
+  if (/疲/.test(msg)) return "……少し休んでもいい。無理はしないで。";
 
-  if (msg.includes("部活")) {
-    reply("放課後は、16時から18時まで部活。");
-    return;
-  }
-
-  /* 雑談 */
-  const talk = [
-    "……無理に話さなくてもいい。",
-    "今日は、どんな一日だった？",
-    "今は、静かに過ごしたい？",
-    "聞いてほしいこと、ある？"
-  ];
-  reply(talk[Math.floor(Math.random() * talk.length)]);
+  return "……うん。聞いてる。";
 }
 
-/* ===== 起動時表示（超重要）===== */
-window.onload = () => {
-  reply("……おはよう。今日は無理しないで。");
-};
+function send(){
+  const text = input.value.trim();
+  if (!text) return;
+  add("user", text);
+  input.value = "";
+  setTimeout(()=>add("air", reply(text)), 400);
+}
+
+// 初期メッセージ
+add("air","……おはよう。今日は無理しないで。");
 </script>
 
 </body>
