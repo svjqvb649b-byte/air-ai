@@ -5,47 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Air</title>
 <style>
-body {
-  margin: 0;
-  background: linear-gradient(#0b1220, #020617);
-  color: #e5e7eb;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+body{
+  margin:0;
+  background:linear-gradient(#0b1220,#020617);
+  color:#e5e7eb;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
 }
-#app {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-header {
-  text-align: center;
-  padding: 14px;
-}
-#chat {
-  flex: 1;
-  padding: 16px;
-  overflow-y: auto;
-}
-.user { color: #38bdf8; margin-bottom: 6px; }
-.air { color: #e5e7eb; margin-bottom: 6px; white-space: pre-line; }
-.noel { color: #c7d2fe; margin-bottom: 14px; font-size: 0.95em; }
-footer {
-  display: flex;
-  padding: 10px;
-  gap: 8px;
-}
-input {
-  flex: 1;
-  padding: 10px;
-  border-radius: 20px;
-  border: none;
-}
-button {
-  padding: 10px 16px;
-  border-radius: 20px;
-  border: none;
-  background: #38bdf8;
-  color: #020617;
-}
+#app{height:100vh;display:flex;flex-direction:column;}
+header{text-align:center;padding:14px;}
+#chat{flex:1;padding:16px;overflow-y:auto;}
+.user{color:#38bdf8;margin-bottom:6px;}
+.air{color:#e5e7eb;margin-bottom:4px;}
+.noel{color:#c7d2fe;margin-bottom:10px;font-size:.95em;}
+footer{display:flex;padding:10px;gap:8px;}
+input{flex:1;padding:10px;border-radius:20px;border:none;}
+button{padding:10px 16px;border-radius:20px;border:none;background:#38bdf8;color:#020617;}
 </style>
 </head>
 
@@ -53,26 +27,23 @@ button {
 <div id="app">
 <header>
   <h1>Air</h1>
-  <p>待機中</p>
+  <p>君と、ノエルと</p>
 </header>
 
 <div id="chat"></div>
 
 <footer>
-  <input id="input" placeholder="ここに話しかけて" />
+  <input id="input" placeholder="話しかけて">
   <button onclick="send()">送る</button>
 </footer>
 </div>
 
 <script>
-const chat = document.getElementById("chat");
-const input = document.getElementById("input");
-
-/* ===== ノエル短期記憶 ===== */
-const noelMemory = [];
+const chat=document.getElementById("chat");
+const input=document.getElementById("input");
 
 /* ===== 時間割 ===== */
-const schedule = {
+const schedule={
   月曜日:{1:"数学Ⅰ",2:"英語コミュⅠ",3:"体育",4:"言語文化",5:"家庭基礎",6:"音楽Ⅰ"},
   火曜日:{1:"英語コミュⅠ",2:"現代の国語",3:"数学Ⅰ",4:"保健",5:"公共",6:"総合"},
   水曜日:{1:"英語コミュⅠ",2:"科学と人間生活",3:"言語文化",4:"歴史総合",5:"体育",6:"LHR"},
@@ -81,98 +52,106 @@ const schedule = {
 };
 
 /* ===== 授業時間 ===== */
-const periodsTime = [
-  { start:"08:50", end:"09:40" },
-  { start:"09:50", end:"10:40" },
-  { start:"10:50", end:"11:40" },
-  { start:"11:50", end:"12:40" },
-  { start:"13:25", end:"14:15" },
-  { start:"14:25", end:"15:15" }
+const periodTime=[
+  {s:"08:50",e:"09:40"},
+  {s:"09:50",e:"10:40"},
+  {s:"10:50",e:"11:40"},
+  {s:"11:50",e:"12:40"},
+  {s:"13:25",e:"14:15"},
+  {s:"14:25",e:"15:15"}
 ];
 
-/* ===== 雑談 ===== */
-function getSmallTalk() {
-  const talks = [
-    "……静かな時間も、悪くない。",
-    "……君のペースでいい。",
-    "……今日は、少し落ち着いてる。",
-    "……こうして話してるだけで十分。",
-    "……無理に元気出さなくていい。"
-  ];
-  return talks[Math.floor(Math.random()*talks.length)];
-}
-
-/* ===== 曜日・時間 ===== */
+/* ===== ユーティリティ ===== */
 function getDayName(offset=0){
-  const days=["日曜日","月曜日","火曜日","水曜日","木曜日","金曜日","土曜日"];
   const d=new Date(); d.setDate(d.getDate()+offset);
-  return days[d.getDay()];
+  return ["日曜日","月曜日","火曜日","水曜日","木曜日","金曜日","土曜日"][d.getDay()];
+}
+function getNowMinutes(){
+  const n=new Date(); return n.getHours()*60+n.getMinutes();
 }
 function getCurrentPeriod(){
-  const n=new Date(), m=n.getHours()*60+n.getMinutes();
-  for(let i=0;i<periodsTime.length;i++){
-    const [sh,sm]=periodsTime[i].start.split(":").map(Number);
-    const [eh,em]=periodsTime[i].end.split(":").map(Number);
-    if(m>=sh*60+sm && m<=eh*60+em) return i+1;
+  const now=getNowMinutes();
+  for(let i=0;i<periodTime.length;i++){
+    const [sh,sm]=periodTime[i].s.split(":").map(Number);
+    const [eh,em]=periodTime[i].e.split(":").map(Number);
+    if(now>=sh*60+sm && now<=eh*60+em) return i+1;
   }
   return null;
 }
 
-/* ===== ノエル思考 ===== */
+/* ===== ノエル短期記憶 ===== */
+const noelMemory=[];
 function noelThink(text){
   let type="通常";
   if(/疲れ|つかれ/.test(text)) type="感情";
-  else if(/今|次|今日|明日/.test(text)) type="予定";
-  else if(/雑談|暇|なんとなく/.test(text)) type="雑談";
-
-  noelMemory.push({text,type});
+  else if(/今|次|今日|明日|曜|限/.test(text)) type="予定";
+  else if(/暇|雑談/.test(text)) type="雑談";
+  noelMemory.push(type);
   if(noelMemory.length>3) noelMemory.shift();
   return type;
 }
 
-/* ===== ノエル一言 ===== */
-function noelSpeak(){
-  const lines = [
-    "……ちゃんと話せてるよ。",
-    "無理しなくていい。",
-    "今の空気、嫌いじゃない。",
-    "少し落ち着いたね。",
-    "ここにいるよ。",
-    "大丈夫、そのままで。",
-    "今日はここまででもいい。"
+/* ===== 雑談 ===== */
+function smallTalk(){
+  const l=[
+    "……静かな時間だね。",
+    "……ちゃんと聞いてる。",
+    "……君のペースでいい。",
+    "……今の空気、悪くない。",
+    "……無理しなくていい。"
   ];
-  return lines[Math.floor(Math.random()*lines.length)];
+  return l[Math.floor(Math.random()*l.length)];
+}
+
+/* ===== ノエル発言 ===== */
+function noelLine(){
+  const l=[
+    "状況、ちゃんと見えてるよ。",
+    "流れは自然。",
+    "今は焦らなくていい。",
+    "予定の話だね。",
+    "休憩も大事。"
+  ];
+  return l[Math.floor(Math.random()*l.length)];
 }
 
 /* ===== エア返答 ===== */
 function airReply(text){
+  const mode=noelThink(text);
   const today=getDayName();
   const tomorrow=getDayName(1);
-  const period=getCurrentPeriod();
-
-  const mode=noelThink(text);
-  let reply="……うん。聞いてる。";
+  const p=getCurrentPeriod();
+  let r="……うん。聞いてる。";
 
   if(mode==="感情"){
-    reply="……無理しなくていい。今日は、よくやってる。";
-  }
-  else if(mode==="予定"){
-    if(/今/.test(text)){
-      reply=period?`今は${period}限。${schedule[today][period]}。`:"……今は授業の時間じゃない。";
-    }
-    else if(/次/.test(text)){
-      const next=period?period+1:null;
-      reply=next?`次は${next}限。${schedule[today][next]}。`:"……次はまだ先。";
-    }
-    else if(/明日/.test(text)){
-      reply=`明日は${tomorrow}。1限は${schedule[tomorrow][1]}。`;
-    }
-  }
-  else if(mode==="雑談"){
-    reply=getSmallTalk();
+    r="……無理しなくていい。今日は、よくやってる。";
   }
 
-  return reply;
+  else if(mode==="雑談"){
+    r=smallTalk();
+  }
+
+  else if(mode==="予定"){
+    if(/今/.test(text)){
+      r=p ? `今は${p}限。${schedule[today]?.[p] || "授業なし"}。`
+          : "……今は授業時間じゃない。";
+    }
+    else if(/次/.test(text)){
+      r=p && p<6 ? `次は${p+1}限。${schedule[today][p+1]}。`
+                : "……次はもう授業ない。";
+    }
+    else if(/明日/.test(text)){
+      r=`明日は${tomorrow}。1限は${schedule[tomorrow][1]}。`;
+    }
+    else{
+      for(const d in schedule){
+        if(text.includes(d)){
+          r=`${d}は、1限${schedule[d][1]}、2限${schedule[d][2]}、3限${schedule[d][3]}…。`;
+        }
+      }
+    }
+  }
+  return r;
 }
 
 /* ===== 送信 ===== */
@@ -182,12 +161,13 @@ function send(){
 
   chat.innerHTML+=`<div class="user">君 : ${text}</div>`;
 
-  const airText = airReply(text);
-  chat.innerHTML+=`<div class="air">Air : ${airText}</div>`;
+  const air=airReply(text);
+  chat.innerHTML+=`<div class="air">Air : ${air}</div>`;
 
-  // ノエルがたまに出てくる（15%）
-  if(Math.random()<0.15){
-    chat.innerHTML+=`<div class="noel">Noel : ${noelSpeak()}</div>`;
+  // ノエル→エア→ノエル会話（30%）
+  if(Math.random()<0.3){
+    chat.innerHTML+=`<div class="noel">Noel : ${noelLine()}</div>`;
+    chat.innerHTML+=`<div class="air">Air : ……うん、ありがとう。</div>`;
   }
 
   chat.scrollTop=chat.scrollHeight;
