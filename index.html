@@ -85,7 +85,7 @@ const timetable = {
 const days = ["日","月","火","水","木","金","土"];
 
 // ======================
-// Air 待機リアクション（追加機能）
+// Air 待機リアクション
 // ======================
 const airIdleReplies = [
   "……うん。聞いてる。",
@@ -128,6 +128,17 @@ function say(who, text) {
 })();
 
 // ======================
+// Air & Noel 内部相談
+// ======================
+function consult(airThought, noelThought) {
+  // Noelが何か言っていたら優先
+  if (noelThought) {
+    return { air: airThought, noel: noelThought };
+  }
+  return { air: airThought, noel: "" };
+}
+
+// ======================
 // メイン処理
 // ======================
 function send() {
@@ -142,10 +153,7 @@ function send() {
   const day = days[now.getDay()];
   const hour = now.getHours();
 
-  // ★ デフォルトはランダム待機反応
-  let air = airIdleReplies[
-    Math.floor(Math.random() * airIdleReplies.length)
-  ];
+  let air = airIdleReplies[Math.floor(Math.random() * airIdleReplies.length)];
   let noel = "";
 
   const callAir = msg.includes("エア");
@@ -183,7 +191,7 @@ function send() {
   // 感情・雑談
   if (msg.includes("疲れ")) {
     air = "……無理するな。";
-    noel = "少し休も。深呼吸して。";
+    noel = "少し休も。深呼吸しよ。";
   }
 
   if (msg.includes("ありがとう")) {
@@ -197,8 +205,15 @@ function send() {
       [Math.floor(Math.random()*3)];
   }
 
-  if (callAir || !callNoel) say("air", "Air： " + air);
-  if (callNoel || noel) say("noel", "Noel： " + (noel || "呼んでくれてありがとう。"));
+  // ★ 相談してから表示
+  const result = consult(air, noel);
+
+  if (callAir || !callNoel) {
+    say("air", "Air： " + result.air);
+  }
+  if (callNoel || result.noel) {
+    say("noel", "Noel： " + (result.noel || "……エアの言う通りだよ。"));
+  }
 }
 
 // ======================
@@ -211,7 +226,7 @@ document.getElementById("text").addEventListener("keydown", e => {
 // 初期メッセージ
 if (!localStorage.getItem("airLog")) {
   say("air","Air： ……ここにいる。");
-  say("noel","Noel： 今日も一緒に話そう。");
+  say("noel","Noel： 今日はどんな話する？");
 }
 </script>
 
