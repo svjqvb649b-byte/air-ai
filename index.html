@@ -2,233 +2,158 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8" />
+<title>Air & Noel（音声対応）</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Air & Noel</title>
-
 <style>
-body {
-  margin: 0;
-  background: linear-gradient(180deg, #020617, #020617);
-  color: #e5e7eb;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont;
-  font-size: 18px;
-  -webkit-text-size-adjust: 100%;
-}
+  body {
+    margin: 0;
+    background: #020617;
+    color: #e5e7eb;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont;
+  }
+  #chat {
+    padding: 16px;
+    height: calc(100vh - 120px);
+    overflow-y: auto;
+    font-size: 18px;
+  }
+  .you { color: #38bdf8; margin: 8px 0; }
+  .air { color: #e5e7eb; margin: 8px 0; }
+  .noel { color: #a5b4fc; margin: 8px 0; }
 
-#chat {
-  padding: 20px;
-  height: calc(100vh - 70px);
-  overflow-y: auto;
-  font-size: 1.05rem;
-  line-height: 1.7;
-}
-
-.you  { color: #38bdf8; margin: 8px 0; }
-.air  { color: #e5e7eb; margin: 8px 0; }
-.noel { color: #a5b4fc; margin: 8px 0; }
-
-#inputArea {
-  display: flex;
-  padding: 10px;
-  background: #020617;
-}
-
-input {
-  flex: 1;
-  padding: 12px;
-  border-radius: 20px;
-  border: none;
-  outline: none;
-  font-size: 1rem;
-}
-
-button {
-  margin-left: 10px;
-  padding: 0 20px;
-  border-radius: 20px;
-  border: none;
-  background: #38bdf8;
-  color: #020617;
-  font-size: 1rem;
-}
+  #inputArea {
+    display: flex;
+    gap: 8px;
+    padding: 12px;
+    background: #020617;
+  }
+  input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 20px;
+    border: none;
+    font-size: 16px;
+  }
+  button {
+    padding: 10px 16px;
+    border-radius: 20px;
+    border: none;
+    font-size: 16px;
+    background: #38bdf8;
+    color: #020617;
+  }
 </style>
 </head>
-
 <body>
 
 <div id="chat"></div>
 
 <div id="inputArea">
-  <input id="text" placeholder="ここに話しかけて" />
+  <input id="text" placeholder="話しかけて（声でもOK）" />
   <button onclick="send()">送る</button>
+  <button onclick="startVoice()">🎤</button>
 </div>
 
 <script>
-// ======================
-// 日本時間
-// ======================
-function getJSTDate() {
+// ===== 日本時間 =====
+function getJST() {
   const now = new Date();
   return new Date(now.getTime() + (9 * 60 + now.getTimezoneOffset()) * 60000);
 }
 
-// ======================
-// 時間割
-// ======================
-const timetable = {
-  "月": ["数学Ⅰ","英語コミュⅠ","体育","言語文化","家庭基礎","音楽Ⅰ"],
-  "火": ["英語コミュⅠ","現代の国語","数学Ⅰ","保健","公共","総合"],
-  "水": ["英語コミュⅠ","科学と人間生活","言語文化","歴史総合","体育","LHR"],
-  "木": ["音楽Ⅰ","科学と人間生活","情報Ⅰ","家庭基礎","体育","数学Ⅰ"],
-  "金": ["公共","数学Ⅰ","英語コミュⅠ","歴史総合","現代の国語","情報Ⅰ"]
-};
 const days = ["日","月","火","水","木","金","土"];
 
-// ======================
-// Air 待機リアクション
-// ======================
-const airIdleReplies = [
-  "……うん。聞いてる。",
-  "……どうした？",
-  "……続けて。",
-  "……ちゃんと聞いてる。",
-  "……今、考えてる。",
-  "……君の話、止めなくていい。"
-];
+const timetable = {
+  "月": ["数学","英コミュ","体育","国語"],
+  "火": ["英コミュ","数学","理科","公共"],
+  "水": ["国語","理科","体育","LHR"],
+  "木": ["音楽","情報","家庭","数学"],
+  "金": ["公共","数学","英コミュ","国語"]
+};
 
-// ======================
-// 表示＆保存
-// ======================
+// ===== 表示 =====
 const chat = document.getElementById("chat");
-
 function say(who, text) {
   const div = document.createElement("div");
   div.className = who;
   div.textContent = text;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
-
-  const logs = JSON.parse(localStorage.getItem("airLog") || "[]");
-  logs.push({ who, text });
-  localStorage.setItem("airLog", JSON.stringify(logs));
 }
 
-// ======================
-// ログ復元
-// ======================
-(function restore() {
-  const logs = JSON.parse(localStorage.getItem("airLog") || "[]");
-  logs.forEach(l => {
-    const div = document.createElement("div");
-    div.className = l.who;
-    div.textContent = l.text;
-    chat.appendChild(div);
-  });
-  chat.scrollTop = chat.scrollHeight;
-})();
+// ===== 会話処理 =====
+function processMessage(msg) {
+  const now = getJST();
+  const day = days[now.getDay()];
+  const hour = now.getHours();
 
-// ======================
-// Air & Noel 内部相談
-// ======================
-function consult(airThought, noelThought) {
-  // Noelが何か言っていたら優先
-  if (noelThought) {
-    return { air: airThought, noel: noelThought };
+  let air = "……うん、聞いてる。";
+  let noel = "";
+
+  if (msg.includes("今日")) {
+    air = `……今日は${day}曜日。`;
+    if (timetable[day]) {
+      noel = `授業は ${timetable[day].join("、")} だよ。`;
+    }
   }
-  return { air: airThought, noel: "" };
+
+  if (msg.includes("今") && msg.includes("何時")) {
+    air = `……今は ${hour}時。`;
+  }
+
+  if (msg.includes("疲れた")) {
+    air = "……無理しなくていい。";
+    noel = "ちゃんと休もう。深呼吸しよ。";
+  }
+
+  if (msg.includes("ありがとう")) {
+    air = "……どういたしまして。";
+    noel = "こちらこそ、話してくれてありがとう。";
+  }
+
+  if (Math.random() < 0.25 && !noel) {
+    noel = ["今日はどう？","ちゃんと水飲んでる？","無理してない？"][Math.floor(Math.random()*3)];
+  }
+
+  say("air", "Air： " + air);
+  if (noel) say("noel", "Noel： " + noel);
 }
 
-// ======================
-// メイン処理
-// ======================
+// ===== 送信 =====
 function send() {
   const input = document.getElementById("text");
   const msg = input.value.trim();
   if (!msg) return;
   input.value = "";
-
   say("you", "君： " + msg);
-
-  const now = getJSTDate();
-  const day = days[now.getDay()];
-  const hour = now.getHours();
-
-  let air = airIdleReplies[Math.floor(Math.random() * airIdleReplies.length)];
-  let noel = "";
-
-  const callAir = msg.includes("エア");
-  const callNoel = msg.includes("ノエル");
-
-  // 今日
-  if (msg.includes("今日")) {
-    air = `……今日は${day}曜日。`;
-    if (timetable[day]) air += ` ${timetable[day].length}限まである。`;
-  }
-
-  // 今何限
-  if (msg.includes("今") && msg.includes("何限")) {
-    const p =
-      hour < 9 ? 0 :
-      hour < 10 ? 1 :
-      hour < 11 ? 2 :
-      hour < 12 ? 3 :
-      hour < 14 ? 4 :
-      hour < 15 ? 5 :
-      hour < 16 ? 6 : 0;
-
-    air = p === 0
-      ? "……今は授業時間じゃない。"
-      : `……今は${p}限。${timetable[day]?.[p-1] || ""}`;
-  }
-
-  // 明日
-  if (msg.includes("明日")) {
-    const t = days[(now.getDay()+1)%7];
-    air = `……明日は${t}曜日。`;
-    if (timetable[t]) noel = `時間割は ${timetable[t].join("、")} だよ。`;
-  }
-
-  // 感情・雑談
-  if (msg.includes("疲れ")) {
-    air = "……無理するな。";
-    noel = "少し休も。深呼吸しよ。";
-  }
-
-  if (msg.includes("ありがとう")) {
-    air = "……どういたしまして。";
-    noel = "そう言ってもらえるの嬉しいな。";
-  }
-
-  // Noelランダム割り込み
-  if (!noel && Math.random() < 0.3) {
-    noel = ["ちゃんと寝てる？","水分とってね。","今日は無理しすぎないで。"]
-      [Math.floor(Math.random()*3)];
-  }
-
-  // ★ 相談してから表示
-  const result = consult(air, noel);
-
-  if (callAir || !callNoel) {
-    say("air", "Air： " + result.air);
-  }
-  if (callNoel || result.noel) {
-    say("noel", "Noel： " + (result.noel || "……エアの言う通りだよ。"));
-  }
+  processMessage(msg);
 }
 
-// ======================
-// Enterキー送信
-// ======================
-document.getElementById("text").addEventListener("keydown", e => {
-  if (e.key === "Enter") send();
-});
+// ===== 音声入力 =====
+function startVoice() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert("このブラウザは音声入力に対応していません");
+    return;
+  }
 
-// 初期メッセージ
-if (!localStorage.getItem("airLog")) {
-  say("air","Air： ……ここにいる。");
-  say("noel","Noel： 今日はどんな話する？");
+  const recognition = new SpeechRecognition();
+  recognition.lang = "ja-JP";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.start();
+
+  recognition.onresult = (e) => {
+    const text = e.results[0][0].transcript;
+    document.getElementById("text").value = text;
+    send();
+  };
 }
+
+// 初期
+say("air","Air： ……声でも、文字でも、ちゃんと届く。");
+say("noel","Noel： マイク押して話してみてね。");
 </script>
-
 </body>
 </html>
