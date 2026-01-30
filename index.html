@@ -1,37 +1,47 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Air & Noel</title>
+
 <style>
-body {
+html, body {
   margin: 0;
+  padding: 0;
+  height: 100%;
   background: #020617;
   color: #e5e7eb;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+  font-family: system-ui, -apple-system;
+  font-size: 18px;
 }
+
 #chat {
   padding: 20px;
-  height: calc(100vh - 120px);
+  height: calc(100vh - 140px);
   overflow-y: auto;
+  line-height: 1.8;
 }
-.you { color: #38bdf8; margin: 6px 0; font-size: 1.05rem; }
-.air { color: #e5e7eb; margin: 6px 0; font-size: 1.05rem; }
-.noel { color: #a5b4fc; margin: 6px 0; font-size: 1.05rem; }
+
+.you  { color: #38bdf8; margin: 12px 0; }
+.air  { color: #e5e7eb; margin: 12px 0; }
+.noel { color: #a5b4fc; margin: 12px 0; }
 
 #inputArea {
   display: flex;
   padding: 10px;
-  gap: 6px;
 }
+
 input {
   flex: 1;
-  padding: 12px;
+  padding: 14px;
   border-radius: 20px;
   border: none;
   font-size: 1rem;
 }
+
 button {
+  margin-left: 6px;
   padding: 0 14px;
   border-radius: 20px;
   border: none;
@@ -40,39 +50,22 @@ button {
 }
 </style>
 </head>
+
 <body>
 
 <div id="chat"></div>
 
 <div id="inputArea">
-  <input id="text" placeholder="ここに話しかけて" />
+  <input id="text" placeholder="ここに話しかけて">
   <button onclick="send()">送る</button>
-  <button onclick="startLongTalk()">長文</button>
+  <button onclick="toggleStory()">長文</button>
+  <button onclick="toggleDuo()">2人</button>
 </div>
 
 <script>
-// ======================
-// JST
-// ======================
-function getJSTDate() {
-  const now = new Date();
-  return new Date(now.getTime() + (9 * 60 + now.getTimezoneOffset()) * 60000);
-}
-
-// ======================
-// 時間割
-// ======================
-const timetable = {
-  "月": ["数学Ⅰ","英語コミュⅠ","体育","言語文化","家庭基礎","音楽Ⅰ"],
-  "火": ["英語コミュⅠ","現代の国語","数学Ⅰ","保健","公共","総合"],
-  "水": ["英語コミュⅠ","科学と人間生活","言語文化","歴史総合","体育","LHR"],
-  "木": ["音楽Ⅰ","科学と人間生活","情報Ⅰ","家庭基礎","体育","数学Ⅰ"],
-  "金": ["公共","数学Ⅰ","英語コミュⅠ","歴史総合","現代の国語","情報Ⅰ"]
-};
-const days = ["日","月","火","水","木","金","土"];
-
-// ======================
 const chat = document.getElementById("chat");
+const input = document.getElementById("text");
+
 function say(who, text) {
   const div = document.createElement("div");
   div.className = who;
@@ -81,150 +74,183 @@ function say(who, text) {
   chat.scrollTop = chat.scrollHeight;
 }
 
-// ======================
-// 短期メモリ
-// ======================
-let lastUserMood = "";
-let lastUserTopic = "";
+/* ===== 時間割 ===== */
+const timetable = {
+  "月": ["国語","数学","英語","理科","体育"],
+  "火": ["数学","社会","英語","音楽","美術"],
+  "水": ["英語","理科","国語","技術","総合"],
+  "木": ["社会","数学","英語","体育","理科"],
+  "金": ["国語","数学","社会","英語"]
+};
 
-// ======================
-// 通常会話
-// ======================
+const days = ["日","月","火","水","木","金","土"];
+
+function today() {
+  return days[new Date().getDay()];
+}
+
+function currentPeriod() {
+  const h = new Date().getHours();
+  if (h < 9) return 0;
+  if (h < 10) return 1;
+  if (h < 11) return 2;
+  if (h < 12) return 3;
+  if (h < 14) return 4;
+  if (h < 15) return 5;
+  return -1;
+}
+
+/* ===== 通常会話 ===== */
 function send() {
-  longTalkActive = false;
+  if (storyMode) stopStory(true);
+  if (duoMode) stopDuo(true);
 
-  const input = document.getElementById("text");
   const msg = input.value.trim();
   if (!msg) return;
   input.value = "";
 
   say("you", "君： " + msg);
 
-  const now = getJSTDate();
-  const day = days[now.getDay()];
-  const hour = now.getHours();
+  let air = null;
+  let noel = null;
 
-  let airReply = "……うん。聞いてる。";
-  let noelReply = "";
+  const d = today();
+  const p = currentPeriod();
 
-  // ===== あいさつ対応（追加機能）=====
-  if (msg.includes("おはよう")) {
-    airReply = "……おはよう。今日も始まったな。";
-    noelReply = "おはよう！ちゃんと起きられてえらいよ。";
+  /* 時間割 */
+  if (msg.includes("今日の時間割")) {
+    air = "今日は" + d + "曜日。";
+    noel = timetable[d]
+      ? "授業は「" + timetable[d].join("、") + "」だよ。"
+      : "今日は授業はないね。";
   }
-
-  if (msg.includes("こんにちは")) {
-    airReply = "……こんにちは。今は落ち着いてる時間か。";
-    noelReply = "こんにちは。今日はどんな感じ？";
+  else if (msg.includes("今何限")) {
+    air = "時刻を基準に判定。";
+    noel = p > 0 ? "今は" + p + "限目だよ。" : "今は授業時間外。";
   }
-
-  if (msg.includes("こんばんは")) {
-    airReply = "……こんばんは。今日も一日、おつかれ。";
-    noelReply = "こんばんは。無事ここまで来たね。";
+  else if (msg.includes("次の授業")) {
+    air = "次を確認。";
+    noel = (timetable[d] && p >= 0 && timetable[d][p])
+      ? "次は「" + timetable[d][p] + "」。"
+      : "次は休憩でいい。";
   }
-
-  // ===== 雰囲気取得 =====
-  if (msg.includes("疲")) lastUserMood = "疲れてる";
-  if (msg.includes("楽")) lastUserMood = "前向き";
-  if (msg.includes("勉強")) lastUserTopic = "勉強";
-  if (msg.includes("学校")) lastUserTopic = "学校";
-
-  // ===== 今日 =====
-  if (msg.includes("今日")) {
-    airReply = `……今日は${day}曜日。`;
-    if (timetable[day]) {
-      noelReply = `授業は${timetable[day].length}限までだよ。`;
+  else if (msg.includes("時間割")) {
+    air = "曜日指定を検出。";
+    for (const day in timetable) {
+      if (msg.includes(day)) {
+        noel = day + "曜は「" + timetable[day].join("、") + "」。";
+      }
+    }
+  }
+  /* 感情 */
+  else if (msg.includes("疲れた")) {
+    air = "疲労を検知。";
+    noel = "今日はここまででも十分だよ。";
+  }
+  /* 雑談 */
+  else {
+    if (Math.random() < 0.5) {
+      air = "内容を受理。";
+    } else {
+      noel = "うん、聞いてるよ。";
     }
   }
 
-  // ===== 今何限 =====
-  if (msg.includes("今") && msg.includes("何限")) {
-    const period = hour < 9 ? 0 :
-                   hour < 10 ? 1 :
-                   hour < 11 ? 2 :
-                   hour < 12 ? 3 :
-                   hour < 14 ? 4 :
-                   hour < 15 ? 5 :
-                   hour < 16 ? 6 : 0;
-    airReply = period === 0 ? "……今は授業時間じゃない。" :
-      `……今は${period}限。${timetable[day]?.[period-1] || ""}`;
-  }
-
-  // ===== 感情 =====
-  if (msg.includes("疲れた")) {
-    airReply = "……無理しなくていい。";
-    noelReply = "今日はどこが一番しんどかった？";
-  }
-
-  if (msg.includes("ありがとう")) {
-    airReply = "……どういたしまして。";
-    noelReply = "そう言ってもらえるの、すごく嬉しい。";
-  }
-
-  // ===== 会話を広げる =====
-  if (!noelReply && Math.random() < 0.35) {
-    const followUps = [
-      "それで、今どう思ってる？",
-      "もう少し聞いてもいい？",
-      "その話、続きある？",
-      "今の気分はどんな感じ？"
-    ];
-    noelReply = followUps[Math.floor(Math.random()*followUps.length)];
-  }
-
-  say("air","Air： "+airReply);
-  if (noelReply) say("noel","Noel： "+noelReply);
+  if (air)  say("air",  "Air： " + air);
+  if (noel) say("noel", "Noel： " + noel);
 }
 
-// ======================
-// 長文会話モード（2人）
-// ======================
-let longTalkActive = false;
-let longTurn = 0;
-const MAX_LONG_TURN = 12;
+/* ===== 長文モード ===== */
+let storyMode = false;
+let storyTimer = null;
+let storyTurn = 0;
 
-const airLines = [
-  "……人は、それぞれのペースで進む。",
-  "……迷ってるのは、考えてる証拠だ。",
-  "……君は止まってない。",
-  "……積み重ねは消えない。"
+const airStory = [
+  "学校は消耗が前提。",
+  "耐えた事実は残る。",
+  "今日は生存確認で十分。"
 ];
 
-const noelLines = [
-  "焦らなくていいよ。",
-  "ちゃんとやれてると思う。",
-  "一人じゃないって、忘れないで。",
-  "今の君も、悪くないよ。"
+const noelStory = [
+  "ちゃんと来た、それでいい。",
+  "無理しなくて大丈夫。",
+  "今日は休んでもいい日。"
 ];
 
-function startLongTalk() {
-  if (longTalkActive) return;
-  longTalkActive = true;
-  longTurn = 0;
-  say("air","Air： ……少し、2人で話そう。");
-  setTimeout(longTalkLoop, 900);
+function toggleStory() {
+  if (duoMode) stopDuo(false);
+  storyMode = !storyMode;
+
+  if (storyMode) {
+    say("noel", "Noel： 長文モード開始。");
+    input.disabled = true;
+    storyTimer = setInterval(() => {
+      if (storyTurn % 2 === 0)
+        say("air", "Air： " + airStory[(storyTurn/2)%airStory.length]);
+      else
+        say("noel", "Noel： " + noelStory[(storyTurn/2)%noelStory.length]);
+      storyTurn++;
+    }, 4000);
+  } else stopStory(false);
 }
 
-function longTalkLoop() {
-  if (!longTalkActive || longTurn >= MAX_LONG_TURN) {
-    say("noel","Noel： 君が戻ってきたら、また3人で話そ。");
-    longTalkActive = false;
-    return;
+function stopStory(byUser) {
+  clearInterval(storyTimer);
+  storyMode = false;
+  storyTurn = 0;
+  input.disabled = false;
+  if (byUser) {
+    say("air", "Air： 介入を確認。");
+    say("noel", "Noel： おかえり。");
   }
-
-  if (longTurn % 2 === 0) {
-    say("air","Air： "+airLines[Math.floor(Math.random()*airLines.length)]);
-  } else {
-    say("noel","Noel： "+noelLines[Math.floor(Math.random()*noelLines.length)]);
-  }
-
-  longTurn++;
-  setTimeout(longTalkLoop, 1300);
 }
 
-// 初期メッセージ
-say("air","Air： ……ここにいる。");
-say("noel","Noel： おはよう、こんにちは、こんばんは。いつでも反応できるよ。");
+/* ===== 2人会話 ===== */
+let duoMode = false;
+let duoTimer = null;
+let duoTurn = 0;
+
+const duoAir = [
+  "……彼は十分やっている。",
+  "……判断は合理的。",
+  "……今日はこれでいい。"
+];
+
+const duoNoel = [
+  "うん、ちゃんと分かってる。",
+  "少しずつでいい。",
+  "今日は守れたね。"
+];
+
+function toggleDuo() {
+  if (storyMode) stopStory(false);
+  duoMode = !duoMode;
+
+  if (duoMode) {
+    say("air", "Air： 内部会話モードへ。");
+    input.disabled = true;
+    duoTimer = setInterval(() => {
+      if (duoTurn % 2 === 0)
+        say("air", "Air： " + duoAir[Math.floor(duoTurn/2)%duoAir.length]);
+      else
+        say("noel", "Noel： " + duoNoel[Math.floor(duoTurn/2)%duoNoel.length]);
+      duoTurn++;
+    }, 4500);
+  } else stopDuo(false);
+}
+
+function stopDuo(byUser) {
+  clearInterval(duoTimer);
+  duoMode = false;
+  duoTurn = 0;
+  input.disabled = false;
+  if (byUser) say("noel", "Noel： 戻ってきたね。");
+}
+
+/* 初期表示 */
+say("air", "Air： 起動完了。");
+say("noel", "Noel： 今日も一緒にやろう。");
 </script>
+
 </body>
 </html>
