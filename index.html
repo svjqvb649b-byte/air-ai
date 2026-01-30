@@ -82,7 +82,7 @@ function say(who, text) {
 }
 
 // ======================
-// 会話の雰囲気用メモリ（短期）
+// 短期メモリ
 // ======================
 let lastUserMood = "";
 let lastUserTopic = "";
@@ -107,13 +107,29 @@ function send() {
   let airReply = "……うん。聞いてる。";
   let noelReply = "";
 
-  // --- 雰囲気取得 ---
+  // ===== あいさつ対応（追加機能）=====
+  if (msg.includes("おはよう")) {
+    airReply = "……おはよう。今日も始まったな。";
+    noelReply = "おはよう！ちゃんと起きられてえらいよ。";
+  }
+
+  if (msg.includes("こんにちは")) {
+    airReply = "……こんにちは。今は落ち着いてる時間か。";
+    noelReply = "こんにちは。今日はどんな感じ？";
+  }
+
+  if (msg.includes("こんばんは")) {
+    airReply = "……こんばんは。今日も一日、おつかれ。";
+    noelReply = "こんばんは。無事ここまで来たね。";
+  }
+
+  // ===== 雰囲気取得 =====
   if (msg.includes("疲")) lastUserMood = "疲れてる";
   if (msg.includes("楽")) lastUserMood = "前向き";
   if (msg.includes("勉強")) lastUserTopic = "勉強";
   if (msg.includes("学校")) lastUserTopic = "学校";
 
-  // --- 日付 ---
+  // ===== 今日 =====
   if (msg.includes("今日")) {
     airReply = `……今日は${day}曜日。`;
     if (timetable[day]) {
@@ -121,7 +137,7 @@ function send() {
     }
   }
 
-  // --- 今何限 ---
+  // ===== 今何限 =====
   if (msg.includes("今") && msg.includes("何限")) {
     const period = hour < 9 ? 0 :
                    hour < 10 ? 1 :
@@ -134,7 +150,7 @@ function send() {
       `……今は${period}限。${timetable[day]?.[period-1] || ""}`;
   }
 
-  // --- 感情 ---
+  // ===== 感情 =====
   if (msg.includes("疲れた")) {
     airReply = "……無理しなくていい。";
     noelReply = "今日はどこが一番しんどかった？";
@@ -145,8 +161,8 @@ function send() {
     noelReply = "そう言ってもらえるの、すごく嬉しい。";
   }
 
-  // --- 会話を広げる ---
-  if (!noelReply && Math.random() < 0.4) {
+  // ===== 会話を広げる =====
+  if (!noelReply && Math.random() < 0.35) {
     const followUps = [
       "それで、今どう思ってる？",
       "もう少し聞いてもいい？",
@@ -166,20 +182,19 @@ function send() {
 let longTalkActive = false;
 let longTurn = 0;
 const MAX_LONG_TURN = 12;
-let longTopic = "君のこれから";
 
 const airLines = [
-  "……人は、進む速さが違うだけだ。",
-  "……迷ってる時点で、考えている証拠。",
-  "……君は、止まってはいない。",
-  "……選択肢は、まだ残ってる。"
+  "……人は、それぞれのペースで進む。",
+  "……迷ってるのは、考えてる証拠だ。",
+  "……君は止まってない。",
+  "……積み重ねは消えない。"
 ];
 
 const noelLines = [
   "焦らなくていいよ。",
-  "ちゃんと考えてるの、伝わってる。",
-  "一人じゃないって覚えてて。",
-  "今の君、悪くないと思うな。"
+  "ちゃんとやれてると思う。",
+  "一人じゃないって、忘れないで。",
+  "今の君も、悪くないよ。"
 ];
 
 function startLongTalk() {
@@ -207,9 +222,9 @@ function longTalkLoop() {
   setTimeout(longTalkLoop, 1300);
 }
 
-// 初期
+// 初期メッセージ
 say("air","Air： ……ここにいる。");
-say("noel","Noel： 今日も話そう。無理のないペースで。");
+say("noel","Noel： おはよう、こんにちは、こんばんは。いつでも反応できるよ。");
 </script>
 </body>
 </html>
