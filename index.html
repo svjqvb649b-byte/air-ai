@@ -1,159 +1,182 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<title>Air & Noel（音声対応）</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<style>
-  body {
-    margin: 0;
-    background: #020617;
-    color: #e5e7eb;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont;
-  }
-  #chat {
-    padding: 16px;
-    height: calc(100vh - 120px);
-    overflow-y: auto;
-    font-size: 18px;
-  }
-  .you { color: #38bdf8; margin: 8px 0; }
-  .air { color: #e5e7eb; margin: 8px 0; }
-  .noel { color: #a5b4fc; margin: 8px 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Air & Noel</title>
 
-  #inputArea {
-    display: flex;
-    gap: 8px;
-    padding: 12px;
-    background: #020617;
-  }
-  input {
-    flex: 1;
-    padding: 12px;
-    border-radius: 20px;
-    border: none;
-    font-size: 16px;
-  }
-  button {
-    padding: 10px 16px;
-    border-radius: 20px;
-    border: none;
-    font-size: 16px;
-    background: #38bdf8;
-    color: #020617;
-  }
+<style>
+body {
+  margin: 0;
+  background: linear-gradient(180deg, #020617, #020617);
+  color: #e5e7eb;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+  font-size: 18px;
+  -webkit-text-size-adjust: 100%;
+}
+#chat {
+  padding: 20px;
+  height: calc(100vh - 80px);
+  overflow-y: auto;
+  line-height: 1.7;
+}
+.you { color: #38bdf8; margin: 8px 0; }
+.air { color: #e5e7eb; margin: 8px 0; }
+.noel { color: #a5b4fc; margin: 8px 0; }
+
+#inputArea {
+  display: flex;
+  padding: 10px;
+  background: #020617;
+}
+input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 20px;
+  border: none;
+  font-size: 1rem;
+}
+button {
+  margin-left: 10px;
+  padding: 0 20px;
+  border-radius: 20px;
+  border: none;
+  background: #38bdf8;
+  color: #020617;
+  font-size: 1rem;
+}
 </style>
 </head>
+
 <body>
 
 <div id="chat"></div>
 
 <div id="inputArea">
-  <input id="text" placeholder="話しかけて（声でもOK）" />
+  <input id="text" placeholder="ここに話しかけて" />
   <button onclick="send()">送る</button>
-  <button onclick="startVoice()">🎤</button>
 </div>
 
 <script>
-// ===== 日本時間 =====
+// ================= 時間（JST） =================
 function getJST() {
   const now = new Date();
   return new Date(now.getTime() + (9 * 60 + now.getTimezoneOffset()) * 60000);
 }
 
 const days = ["日","月","火","水","木","金","土"];
-
 const timetable = {
-  "月": ["数学","英コミュ","体育","国語"],
-  "火": ["英コミュ","数学","理科","公共"],
-  "水": ["国語","理科","体育","LHR"],
-  "木": ["音楽","情報","家庭","数学"],
-  "金": ["公共","数学","英コミュ","国語"]
+  "月": ["数学Ⅰ","英語","体育","国語","家庭","音楽"],
+  "火": ["英語","国語","数学","保健","公共","総合"],
+  "水": ["英語","科学","国語","歴史","体育","LHR"],
+  "木": ["音楽","科学","情報","家庭","体育","数学"],
+  "金": ["公共","数学","英語","歴史","国語","情報"]
 };
 
-// ===== 表示 =====
+// ================= 表示 =================
 const chat = document.getElementById("chat");
+
 function say(who, text) {
   const div = document.createElement("div");
   div.className = who;
   div.textContent = text;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
+
+  // ログ保存
+  const logs = JSON.parse(localStorage.getItem("chatLogs") || "[]");
+  logs.push({ who, text });
+  localStorage.setItem("chatLogs", JSON.stringify(logs));
 }
 
-// ===== 会話処理 =====
-function processMessage(msg) {
+// ================= 復元 =================
+(function restore() {
+  const logs = JSON.parse(localStorage.getItem("chatLogs") || "[]");
+  logs.forEach(l => say(l.who, l.text));
+})();
+
+// ================= 裏相談 =================
+function consult(msg) {
+  let air = "……うん。聞いてる。";
+  let noel = "";
+
   const now = getJST();
   const day = days[now.getDay()];
   const hour = now.getHours();
 
-  let air = "……うん、聞いてる。";
-  let noel = "";
-
   if (msg.includes("今日")) {
     air = `……今日は${day}曜日。`;
     if (timetable[day]) {
-      noel = `授業は ${timetable[day].join("、")} だよ。`;
+      noel = `授業は${timetable[day].join("、")}だよ。`;
     }
   }
 
-  if (msg.includes("今") && msg.includes("何時")) {
-    air = `……今は ${hour}時。`;
-  }
-
-  if (msg.includes("疲れた")) {
+  if (msg.includes("疲")) {
     air = "……無理しなくていい。";
-    noel = "ちゃんと休もう。深呼吸しよ。";
+    noel = "ちゃんと休もう。君は頑張ってる。";
   }
 
   if (msg.includes("ありがとう")) {
-    air = "……どういたしまして。";
-    noel = "こちらこそ、話してくれてありがとう。";
+    air = "……こちらこそ。";
+    noel = "そう言ってもらえて嬉しいよ。";
   }
 
-  if (Math.random() < 0.25 && !noel) {
-    noel = ["今日はどう？","ちゃんと水飲んでる？","無理してない？"][Math.floor(Math.random()*3)];
-  }
-
-  say("air", "Air： " + air);
-  if (noel) say("noel", "Noel： " + noel);
+  return { air, noel };
 }
 
-// ===== 送信 =====
+// ================= 送信 =================
 function send() {
   const input = document.getElementById("text");
   const msg = input.value.trim();
   if (!msg) return;
   input.value = "";
+
+  stopDuoChat();
   say("you", "君： " + msg);
-  processMessage(msg);
+
+  const { air, noel } = consult(msg);
+  say("air", "Air： " + air);
+  if (noel) say("noel", "Noel： " + noel);
 }
 
-// ===== 音声入力 =====
-function startVoice() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    alert("このブラウザは音声入力に対応していません");
-    return;
-  }
+// Enterキー対応
+document.getElementById("text").addEventListener("keydown", e => {
+  if (e.key === "Enter") send();
+});
 
-  const recognition = new SpeechRecognition();
-  recognition.lang = "ja-JP";
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
+// ================= Air & Noel 雑談 =================
+let duoTimer = null;
 
-  recognition.start();
+function startDuoChat() {
+  duoTimer = setInterval(() => {
+    const airLines = [
+      "……静かだな。",
+      "……時間、流れてる。",
+      "……待つのも悪くない。"
+    ];
+    const noelLines = [
+      "また話しかけてくれるよ。",
+      "ここにいるって大事だよね。",
+      "君のこと、ちゃんと覚えてるよ。"
+    ];
 
-  recognition.onresult = (e) => {
-    const text = e.results[0][0].transcript;
-    document.getElementById("text").value = text;
-    send();
-  };
+    say("air", "Air： " + airLines[Math.floor(Math.random()*airLines.length)]);
+    setTimeout(() => {
+      say("noel", "Noel： " + noelLines[Math.floor(Math.random()*noelLines.length)]);
+    }, 800);
+  }, 25000);
 }
 
-// 初期
-say("air","Air： ……声でも、文字でも、ちゃんと届く。");
-say("noel","Noel： マイク押して話してみてね。");
+function stopDuoChat() {
+  clearInterval(duoTimer);
+  startDuoChat();
+}
+
+// 初期表示
+say("air","Air： ……うん。ここにいる。");
+say("noel","Noel： おはよう。今日も一緒に話そう。");
+startDuoChat();
 </script>
+
 </body>
 </html>
