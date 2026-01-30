@@ -12,41 +12,44 @@ html, body {
   height: 100%;
   background: #020617;
   color: #e5e7eb;
-  font-family: system-ui, -apple-system;
-  font-size: 18px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* 🔧 文字サイズを「普通」に固定 */
+  font-size: 16px;
+  line-height: 1.7;
 }
 
 #chat {
-  padding: 20px;
-  height: calc(100vh - 140px);
+  padding: 16px;
+  height: calc(100vh - 130px);
   overflow-y: auto;
-  line-height: 1.8;
 }
 
-.you  { color: #38bdf8; margin: 12px 0; }
-.air  { color: #e5e7eb; margin: 12px 0; }
-.noel { color: #a5b4fc; margin: 12px 0; }
+.you  { color: #38bdf8; margin: 10px 0; }
+.air  { color: #e5e7eb; margin: 10px 0; }
+.noel { color: #a5b4fc; margin: 10px 0; }
 
 #inputArea {
   display: flex;
   padding: 10px;
+  gap: 6px;
 }
 
 input {
   flex: 1;
-  padding: 14px;
+  padding: 12px 16px;
   border-radius: 20px;
   border: none;
-  font-size: 1rem;
+  font-size: 16px;
 }
 
 button {
-  margin-left: 6px;
   padding: 0 14px;
   border-radius: 20px;
   border: none;
   background: #38bdf8;
   color: #020617;
+  font-size: 14px;
 }
 </style>
 </head>
@@ -117,8 +120,22 @@ function send() {
   const d = today();
   const p = currentPeriod();
 
+  /* 🌅 あいさつ判定（追加） */
+  if (msg.includes("おはよう")) {
+    air = "朝の挨拶を確認。";
+    noel = "おはよう。今日も来てくれてありがとう。";
+  }
+  else if (msg.includes("こんにちは")) {
+    air = "現在は日中。";
+    noel = "こんにちは。調子はどう？";
+  }
+  else if (msg.includes("こんばんは")) {
+    air = "時刻は夜帯。";
+    noel = "こんばんは。今日もお疲れさま。";
+  }
+
   /* 時間割 */
-  if (msg.includes("今日の時間割")) {
+  else if (msg.includes("今日の時間割")) {
     air = "今日は" + d + "曜日。";
     noel = timetable[d]
       ? "授業は「" + timetable[d].join("、") + "」だよ。"
@@ -142,17 +159,15 @@ function send() {
       }
     }
   }
-  /* 感情 */
   else if (msg.includes("疲れた")) {
     air = "疲労を検知。";
-    noel = "今日はここまででも十分だよ。";
+    noel = "無理しなくていいよ。今日はここまででも十分。";
   }
-  /* 雑談 */
   else {
     if (Math.random() < 0.5) {
       air = "内容を受理。";
     } else {
-      noel = "うん、聞いてるよ。";
+      noel = "うん、ちゃんと聞いてる。";
     }
   }
 
@@ -166,15 +181,15 @@ let storyTimer = null;
 let storyTurn = 0;
 
 const airStory = [
-  "学校は消耗が前提。",
+  "学校は消耗前提。",
   "耐えた事実は残る。",
-  "今日は生存確認で十分。"
+  "今日はこれで十分。"
 ];
 
 const noelStory = [
-  "ちゃんと来た、それでいい。",
-  "無理しなくて大丈夫。",
-  "今日は休んでもいい日。"
+  "ちゃんと来たね。",
+  "無理しなくていい。",
+  "今日は守れたよ。"
 ];
 
 function toggleStory() {
@@ -211,13 +226,13 @@ let duoTimer = null;
 let duoTurn = 0;
 
 const duoAir = [
-  "……彼は十分やっている。",
-  "……判断は合理的。",
+  "……十分やっている。",
+  "……判断は妥当。",
   "……今日はこれでいい。"
 ];
 
 const duoNoel = [
-  "うん、ちゃんと分かってる。",
+  "うん、分かってる。",
   "少しずつでいい。",
   "今日は守れたね。"
 ];
@@ -249,7 +264,7 @@ function stopDuo(byUser) {
 
 /* 初期表示 */
 say("air", "Air： 起動完了。");
-say("noel", "Noel： 今日も一緒にやろう。");
+say("noel", "Noel： いつでも話しかけて。");
 </script>
 
 </body>
