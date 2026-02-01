@@ -5,142 +5,159 @@ window.addEventListener("DOMContentLoaded", () => {
   const log = document.getElementById("log");
 
   /* =========================
-     記憶（ローカル）
+     記憶
   ========================= */
   const memory = {
     short: {
       lastUserText: "",
-      lastSpeaker: "air", // air / noel / user
       lastTalkTime: Date.now()
     },
+
     schedule: {
-      monday: "学校（1〜6限）",
-      tuesday: "学校",
-      wednesday: "学校",
-      thursday: "学校",
-      friday: "学校",
-      saturday: "休み",
-      sunday: "休み",
-      tomorrow: "未登録"
+      monday: [
+        "1限：国語",
+        "2限：数学",
+        "3限：英語",
+        "4限：理科",
+        "5限：体育",
+        "6限：社会"
+      ],
+      tuesday: [
+        "1限：数学",
+        "2限：英語",
+        "3限：音楽",
+        "4限：理科",
+        "5限：国語"
+      ],
+      wednesday: [
+        "1限：社会",
+        "2限：数学",
+        "3限：英語",
+        "4限：美術",
+        "5限：体育"
+      ],
+      thursday: [
+        "1限：理科",
+        "2限：国語",
+        "3限：数学",
+        "4限：英語",
+        "5限：家庭科"
+      ],
+      friday: [
+        "1限：英語",
+        "2限：社会",
+        "3限：数学",
+        "4限：理科",
+        "5限：総合"
+      ],
+      saturday: ["今日は休みだよ"],
+      sunday: ["今日は休みだよ"]
     }
   };
 
   /* =========================
-     共通表示
+     表示
   ========================= */
-  function addLine(speaker, text) {
+  function addLine(name, text) {
     const div = document.createElement("div");
-    div.className = speaker;
-    div.textContent = text;
+    div.innerHTML = `<strong>${name}：</strong>${text}`;
     log.appendChild(div);
     log.scrollTop = log.scrollHeight;
-    memory.short.lastSpeaker = speaker;
-  }
-
-  function air(text) {
-    addLine("air", `Air : ${text}`);
-  }
-
-  function noel(text) {
-    addLine("noel", `Noel : ${text}`);
-  }
-
-  function user(text) {
-    addLine("user", `君 : ${text}`);
   }
 
   /* =========================
-     挨拶・雑談判定
+     曜日変換
   ========================= */
-  function isGreeting(text) {
-    return /(おはよう|こんにちは|こんばんは)/.test(text);
-  }
-
-  function isChat(text) {
-    return /(元気|どう|暇|調子)/.test(text);
-  }
-
-  /* =========================
-     予定判定（★修正ポイント）
-  ========================= */
-  function getSchedule(text) {
-    if (/月曜/.test(text)) return memory.schedule.monday;
-    if (/火曜/.test(text)) return memory.schedule.tuesday;
-    if (/水曜/.test(text)) return memory.schedule.wednesday;
-    if (/木曜/.test(text)) return memory.schedule.thursday;
-    if (/金曜/.test(text)) return memory.schedule.friday;
-    if (/土曜/.test(text)) return memory.schedule.saturday;
-    if (/日曜/.test(text)) return memory.schedule.sunday;
-    if (/明日/.test(text)) return memory.schedule.tomorrow;
+  function getDayKey(text) {
+    if (text.includes("月")) return "monday";
+    if (text.includes("火")) return "tuesday";
+    if (text.includes("水")) return "wednesday";
+    if (text.includes("木")) return "thursday";
+    if (text.includes("金")) return "friday";
+    if (text.includes("土")) return "saturday";
+    if (text.includes("日")) return "sunday";
     return null;
   }
 
+  function todayKey() {
+    const d = new Date().getDay();
+    return ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"][d];
+  }
+
   /* =========================
-     ユーザー入力処理
+     Air（シエスタ風）
   ========================= */
-  function handleUser(text) {
-    memory.short.lastTalkTime = Date.now();
-    user(text);
-
+  function airReply(text) {
     // 挨拶
-    if (isGreeting(text)) {
-      air("……うん、聞こえてる。");
-      noel("ちゃんと反応するよ。");
-      return;
-    }
+    if (/おはよう/.test(text)) return "……おはよう。今日も、無理しないで。";
+    if (/こんにちは/.test(text)) return "……こんにちは。ちゃんと来たんだね。";
+    if (/こんばんは/.test(text)) return "……こんばんは。静かな時間。";
 
-    // 予定
-    const schedule = getSchedule(text);
-    if (schedule) {
-      air(`……${schedule}だよ。`);
-      noel("忘れなくてえらいね。");
-      return;
+    // 時間割
+    if (/予定|時間割/.test(text)) {
+      const key = getDayKey(text) || todayKey();
+      const list = memory.schedule[key];
+      return "……" + list.join("、");
     }
 
     // 雑談
-    if (isChat(text)) {
-      air("……無理しなくていい。");
-      noel("少し話せたらそれで十分。");
-      return;
-    }
+    if (/ありがとう/.test(text)) return "……うん。役に立てたなら、それでいい。";
+    if (/疲れた/.test(text)) return "……少し、休んで。頑張りすぎ。";
 
-    // 何でもない入力
-    air("……うん、聞いてる。");
+    return "……大丈夫。";
   }
 
   /* =========================
-     自動2人会話（沈黙）
+     Noel（そのまま）
   ========================= */
-  function autoTalk() {
-    const now = Date.now();
-    if (now - memory.short.lastTalkTime < 6000) return;
+  function noelReply(text) {
+    if (/おはよう/.test(text)) return "おはよう！今日も話せてうれしいよ";
+    if (/こんにちは/.test(text)) return "こんにちは！";
+    if (/こんばんは/.test(text)) return "こんばんは。今日も一日おつかれさま";
 
-    if (memory.short.lastSpeaker === "air") {
-      noel("今日はここまででもいいよ。");
-    } else {
-      air("……無事に終わった。それでいい。");
+    if (/予定|時間割/.test(text)) {
+      const key = getDayKey(text) || todayKey();
+      return "今日はね、" + memory.schedule[key].join("、だよ");
     }
+
+    return "いつでも話しかけてね";
   }
 
-  setInterval(autoTalk, 2000);
+  /* =========================
+     自動会話（無言時）
+  ========================= */
+  setInterval(() => {
+    if (Date.now() - memory.short.lastTalkTime > 30000) {
+      addLine("Air", "……ここにいる。");
+      setTimeout(() => {
+        addLine("Noel", "いつでも話しかけて。");
+      }, 1200);
+      memory.short.lastTalkTime = Date.now();
+    }
+  }, 5000);
 
   /* =========================
-     イベント
+     送信
   ========================= */
   send.addEventListener("click", () => {
     const text = input.value.trim();
     if (!text) return;
+
+    addLine("君", text);
+    memory.short.lastTalkTime = Date.now();
+
+    setTimeout(() => {
+      addLine("Air", airReply(text));
+    }, 500);
+
+    setTimeout(() => {
+      addLine("Noel", noelReply(text));
+    }, 1100);
+
     input.value = "";
-    handleUser(text);
   });
 
-  input.addEventListener("keydown", e => {
+  input.addEventListener("keypress", e => {
     if (e.key === "Enter") send.click();
   });
-
-  /* =========================
-     初期メッセージ
-  ========================= */
-  air("……ここにいる。");
-  noel("いつでも話しかけて。");
 });
