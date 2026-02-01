@@ -12,19 +12,17 @@ html, body {
   height: 100%;
   background: #020617;
   color: #e5e7eb;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 16px;
-  line-height: 1.7;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont;
 }
 
 #chat {
   padding: 16px;
-  height: calc(100vh - 90px);
+  height: calc(100vh - 80px);
   overflow-y: auto;
 }
 
-.you  { color: #38bdf8; margin: 10px 0; }
-.air  { color: #e5e7eb; margin: 10px 0; }
+.you { color: #38bdf8; margin: 10px 0; }
+.air { color: #e5e7eb; margin: 10px 0; }
 .noel { color: #a5b4fc; margin: 10px 0; }
 
 #inputArea {
@@ -47,12 +45,12 @@ button {
   border: none;
   background: #38bdf8;
   color: #020617;
+  font-size: 16px;
 }
 </style>
 </head>
 
 <body>
-
 <div id="chat"></div>
 
 <div id="inputArea">
@@ -64,6 +62,7 @@ button {
 const chat = document.getElementById("chat");
 const input = document.getElementById("text");
 
+/* ===== 表示 ===== */
 function say(who, text) {
   const div = document.createElement("div");
   div.className = who;
@@ -74,142 +73,69 @@ function say(who, text) {
 
 /* ===== 時間割 ===== */
 const timetable = {
-  1: ["国語", "数学", "英語", "理科", "社会"],
-  2: ["数学", "英語", "体育", "国語", "理科"],
-  3: ["英語", "社会", "数学", "音楽"],
-  4: ["理科", "国語", "美術", "数学"],
-  5: ["社会", "英語", "家庭科"],
+  1: ["国語","数学","英語","理科","社会"],
+  2: ["数学","英語","体育","国語","理科"],
+  3: ["英語","社会","数学","音楽"],
+  4: ["理科","国語","美術","数学"],
+  5: ["社会","英語","家庭科"]
 };
-
 const dayNames = ["日","月","火","水","木","金","土"];
 
-/* ===== モード管理 ===== */
-let duoMode = false;
-let longMode = false;
-let timer = null;
-let turn = 0;
-
-function stopModes() {
-  clearInterval(timer);
-  duoMode = false;
-  longMode = false;
-  turn = 0;
-}
-
-/* ===== 2人会話 ===== */
-const duoAir = [
-  "……今日は十分だった。",
-  "……無事に終わった。",
-  "……それだけでいい。"
-];
-
-const duoNoel = [
-  "うん、本当に。",
-  "ちゃんと守れたね。",
-  "今日は合格だよ。"
-];
-
-function startDuo() {
-  stopModes();
-  duoMode = true;
-  say("air", "Air： ……少し話そう。");
-  timer = setInterval(() => {
-    const i = Math.floor(turn / 2);
-    if (turn % 2 === 0)
-      say("air", "Air： " + duoAir[i % duoAir.length]);
-    else
-      say("noel", "Noel： " + duoNoel[i % duoNoel.length]);
-    turn++;
-  }, 4500);
-}
-
-/* ===== 長文 ===== */
-const longAir = [
-  "……今日をちゃんと乗り切った。",
-  "……簡単じゃなかった。",
-  "……でも、前に進んだ。"
-];
-
-const longNoel = [
-  "うん、見てたよ。",
-  "一つずつ頑張ってた。",
-  "今日はここまででいい。"
-];
-
-function startLong() {
-  stopModes();
-  longMode = true;
-  say("noel", "Noel： ゆっくり話すね。");
-  timer = setInterval(() => {
-    const i = Math.floor(turn / 2);
-    if (turn % 2 === 0)
-      say("air", "Air： " + longAir[i % longAir.length]);
-    else
-      say("noel", "Noel： " + longNoel[i % longNoel.length]);
-    turn++;
-  }, 4200);
-}
-
-/* ===== 時間割処理 ===== */
-function showTodaySchedule() {
-  const d = new Date();
-  const day = d.getDay();
-  const list = timetable[day];
-  if (!list) {
-    say("air", "Air： ……今日は授業ない日。");
-    say("noel", "Noel： 休めるね。");
-    return;
-  }
-  say("air", "Air： ……今日は" + dayNames[day] + "曜日。");
-  say("noel", "Noel： 時間割は「" + list.join("、") + "」だよ。");
-}
-
-/* ===== 通常会話 ===== */
+/* ===== メイン処理 ===== */
 function send() {
   const msg = input.value.trim();
   if (!msg) return;
   input.value = "";
 
-  if (duoMode || longMode) stopModes();
-  say("you", "君： " + msg);
+  say("you", "君: " + msg);
 
-  if (msg.includes("2人") || msg.includes("少し話")) {
-    startDuo(); return;
+  /* 挨拶 */
+  if (msg.includes("おはよう")) {
+    say("air", "Air: ……おはよう。");
+    say("noel", "Noel: 今日も無理しなくていいよ。");
+    return;
   }
 
-  if (msg.includes("長文") || msg.includes("ゆっくり")) {
-    startLong(); return;
+  if (msg.includes("こんにちは")) {
+    say("air", "Air: ……こんにちは。");
+    say("noel", "Noel: 調子どう？");
+    return;
   }
 
+  if (msg.includes("こんばんは")) {
+    say("air", "Air: ……こんばんは。");
+    say("noel", "Noel: 今日どんな一日だった？");
+    return;
+  }
+
+  /* 時間割 */
   if (msg.includes("時間割") || msg.includes("授業")) {
-    showTodaySchedule(); return;
-  }
+    const d = new Date();
+    const day = d.getDay();
+    const list = timetable[day];
 
-  if (msg.includes("おやすみ")) {
-    say("air", "Air： ……おやすみ。");
-    say("noel", "Noel： また明日ね。");
+    if (!list) {
+      say("air", "Air: ……今日は授業ない日。");
+      say("noel", "Noel: ゆっくりしよ。");
+    } else {
+      say("air", `Air: ……今日は${dayNames[day]}曜日。`);
+      say("noel", `Noel: ${list.join("、")}だよ。`);
+    }
     return;
   }
 
-  if (msg.includes("疲れた")) {
-    say("air", "Air： ……よく頑張った。");
-    say("noel", "Noel： 無理しなくていいよ。");
-    return;
-  }
-
+  /* デフォルト */
   const airLines = [
     "……うん、聞いてる。",
     "……君のペースでいい。",
     "……大丈夫。"
   ];
-
-  say("air", "Air： " + airLines[Math.floor(Math.random() * airLines.length)]);
+  say("air", "Air: " + airLines[Math.floor(Math.random() * airLines.length)]);
 }
 
-/* 初期 */
-say("air", "Air： ……ここにいる。");
-say("noel", "Noel： いつでも話しかけて。");
+/* 初期メッセージ */
+say("air", "Air: ……ここにいる。");
+say("noel", "Noel: いつでも話しかけて。");
 </script>
-
 </body>
 </html>
