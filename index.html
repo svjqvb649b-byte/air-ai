@@ -64,6 +64,19 @@ function say(who, text) {
   chat.scrollTop = chat.scrollHeight;
 }
 
+/* ===== 🧠 短期記憶 ===== */
+const memory = [];
+const MEMORY_LIMIT = 5;
+
+function remember(msg) {
+  memory.push(msg);
+  if (memory.length > MEMORY_LIMIT) memory.shift();
+}
+
+function lastMemory() {
+  return memory.length ? memory[memory.length - 1] : "";
+}
+
 /* ===== 時間割 ===== */
 const timetable = {
   1:["国語","数学","英語","理科","社会"],
@@ -133,29 +146,24 @@ function startDuo(auto=false) {
   }, 4500);
 }
 
-/* ===== 裏相談（分析＋反映） ===== */
+/* ===== 裏相談＋短期記憶反映 ===== */
 function consult(msg) {
   let mood = "normal";
-  let intent = "talk";
-
   if (/疲れ|つかれ|しんど|無理|最悪/.test(msg)) mood = "tired";
-  if (/[？?]|どう|なに/.test(msg)) intent = "question";
 
-  // Air：判断
-  let airReply = {
-    normal: "……聞いてる。",
-    tired: "……今日は、きつかったんだね。",
-  }[mood];
+  const prev = lastMemory();
 
-  // Noel：言い方調整
-  let noelAddon = {
-    normal: "ゆっくりでいいよ。",
-    tired: "無理しなくていいよ。",
-  }[mood];
+  let airReply = "……聞いてる。";
+  let noelAddon = "ゆっくりでいいよ。";
 
-  if (intent === "question") {
-    airReply = "……一緒に考えよう。";
-    noelAddon = "落ち着いて見てみよ。";
+  if (prev && prev !== msg) {
+    airReply = "……さっきの話、少し続いてる気がする。";
+    noelAddon = "「"+prev+"」のことだよね。";
+  }
+
+  if (mood === "tired") {
+    airReply = "……今日は、きつかったんだね。";
+    noelAddon = "無理しなくていいよ。";
   }
 
   return { airReply, noelAddon };
@@ -195,6 +203,7 @@ function send() {
   if (duoMode) stopModes();
 
   say("you","君 : "+msg);
+  remember(msg);
 
   if (msg.includes("2人") || msg.includes("話して")) { startDuo(); return; }
   if (msg.includes("次は何限")) { nextPeriod(); return; }
@@ -206,7 +215,6 @@ function send() {
     return;
   }
 
-  // ★ 裏相談を反映した返答
   const res = consult(msg);
   say("air","Air : "+res.airReply);
   say("noel","Noel : "+res.noelAddon);
