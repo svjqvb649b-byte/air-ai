@@ -12,15 +12,13 @@ html, body {
   height: 100%;
   background: #020617;
   color: #e5e7eb;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+  font-family: system-ui;
 }
-
 #chat {
   padding: 16px;
-  height: calc(100vh - 80px);
+  height: calc(100vh - 90px);
   overflow-y: auto;
 }
-
 .you { color: #38bdf8; margin: 10px 0; }
 .air { color: #e5e7eb; margin: 10px 0; }
 .noel { color: #a5b4fc; margin: 10px 0; }
@@ -29,15 +27,12 @@ html, body {
   display: flex;
   padding: 10px;
 }
-
 input {
   flex: 1;
   padding: 12px 16px;
   border-radius: 20px;
   border: none;
-  font-size: 16px;
 }
-
 button {
   margin-left: 8px;
   padding: 0 18px;
@@ -45,7 +40,6 @@ button {
   border: none;
   background: #38bdf8;
   color: #020617;
-  font-size: 16px;
 }
 </style>
 </head>
@@ -62,7 +56,6 @@ button {
 const chat = document.getElementById("chat");
 const input = document.getElementById("text");
 
-/* ===== 表示 ===== */
 function say(who, text) {
   const div = document.createElement("div");
   div.className = who;
@@ -71,58 +64,125 @@ function say(who, text) {
   chat.scrollTop = chat.scrollHeight;
 }
 
-/* ===== セリフ ===== */
-const airDefault = [
-  "……うん、聞いてる。",
-  "……君のペースでいい。",
-  "……大丈夫。",
-  "……無理しなくていい。"
-];
-
-const noelSupport = [
-  "ちゃんと話してくれてありがとう。",
-  "ここに来た時点で十分だよ。",
-  "少しずつでいいからね。"
-];
-
 /* ===== 時間割 ===== */
 const timetable = {
-  1: ["国語","数学","英語","理科","社会"],
-  2: ["数学","英語","体育","国語","理科"],
-  3: ["英語","社会","数学","音楽"],
-  4: ["理科","国語","美術","数学"],
-  5: ["社会","英語","家庭科"]
+  1:["国語","数学","英語","理科","社会"],
+  2:["数学","英語","体育","国語","理科"],
+  3:["英語","社会","数学","音楽"],
+  4:["理科","国語","美術","数学"],
+  5:["社会","英語","家庭科"]
 };
 const dayNames = ["日","月","火","水","木","金","土"];
 
-/* ===== 授業時間 ===== */
+/* ===== 時限 ===== */
 const periods = [
-  { name: "1限目", start: "08:50", end: "09:40" },
-  { name: "2限目", start: "09:50", end: "10:40" },
-  { name: "3限目", start: "10:50", end: "11:40" },
-  { name: "4限目", start: "12:50", end: "13:40" },
-  { name: "昼休み", start: "13:40", end: "14:20" },
-  { name: "5限目", start: "14:25", end: "15:15" },
-  { name: "6限目", start: "15:15", end: "16:00" }
+  {name:"1限目",start:8*60+50,end:9*60+40},
+  {name:"2限目",start:9*60+50,end:10*60+40},
+  {name:"3限目",start:10*60+50,end:11*60+40},
+  {name:"4限目",start:12*60+50,end:13*60+40},
+  {name:"昼休み",start:13*60+40,end:14*60+20},
+  {name:"5限目",start:14*60+25,end:15*60+15},
+  {name:"6限目",start:15*60+15,end:16*60}
 ];
 
-function toMinutes(t) {
-  const [h, m] = t.split(":").map(Number);
-  return h * 60 + m;
+/* ===== モード管理 ===== */
+let duoMode = false;
+let duoTimer = null;
+let turn = 0;
+let idleTimer = null;
+const IDLE_TIME = 30000;
+
+function resetIdle() {
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    if (!duoMode) startDuo(true);
+  }, IDLE_TIME);
 }
 
-/* ===== 今の時間判定 ===== */
-function getNowPeriod() {
-  const now = new Date();
-  const nowMin = now.getHours() * 60 + now.getMinutes();
+function stopModes() {
+  clearInterval(duoTimer);
+  duoMode = false;
+  turn = 0;
+}
 
-  for (let i = 0; i < periods.length; i++) {
-    const p = periods[i];
-    if (nowMin >= toMinutes(p.start) && nowMin <= toMinutes(p.end)) {
-      return p.name;
-    }
+/* ===== 2人会話 ===== */
+const duoAir = [
+  "……少し静かだ。",
+  "……今日は長かった。",
+  "……無理はしてない？",
+  "……ここに来てくれた。"
+];
+const duoNoel = [
+  "うん。",
+  "でも、それでいい。",
+  "ちゃんと進んでる。",
+  "来てくれただけで。"
+];
+
+function startDuo(auto=false) {
+  stopModes();
+  duoMode = true;
+  say("air", auto ? "Air : ……静かだから、少し話そう。" : "Air : ……少し話そう。");
+  duoTimer = setInterval(() => {
+    const i = Math.floor(turn/2);
+    if (turn % 2 === 0)
+      say("air","Air : "+duoAir[i % duoAir.length]);
+    else
+      say("noel","Noel : "+duoNoel[i % duoNoel.length]);
+    turn++;
+  }, 4500);
+}
+
+/* ===== 裏相談（分析＋反映） ===== */
+function consult(msg) {
+  let mood = "normal";
+  let intent = "talk";
+
+  if (/疲れ|つかれ|しんど|無理|最悪/.test(msg)) mood = "tired";
+  if (/[？?]|どう|なに/.test(msg)) intent = "question";
+
+  // Air：判断
+  let airReply = {
+    normal: "……聞いてる。",
+    tired: "……今日は、きつかったんだね。",
+  }[mood];
+
+  // Noel：言い方調整
+  let noelAddon = {
+    normal: "ゆっくりでいいよ。",
+    tired: "無理しなくていいよ。",
+  }[mood];
+
+  if (intent === "question") {
+    airReply = "……一緒に考えよう。";
+    noelAddon = "落ち着いて見てみよ。";
   }
-  return "放課後";
+
+  return { airReply, noelAddon };
+}
+
+/* ===== 機能 ===== */
+function showTodaySchedule() {
+  const d = new Date();
+  const day = d.getDay();
+  const list = timetable[day];
+  if (!list) {
+    say("air","Air : ……今日は授業ない日。");
+    say("noel","Noel : ゆっくりしよ。");
+    return;
+  }
+  say("air","Air : ……今日は"+dayNames[day]+"曜日。");
+  say("noel","Noel : "+list.join("、")+"だよ。");
+}
+
+function nextPeriod() {
+  const now = new Date();
+  const m = now.getHours()*60 + now.getMinutes();
+  for (const p of periods) {
+    if (m < p.start) { say("air","Air : ……次は"+p.name+"。"); return; }
+    if (m >= p.start && m < p.end) { say("air","Air : ……今は"+p.name+"。"); return; }
+  }
+  say("air","Air : ……今日はもう終わり。");
 }
 
 /* ===== メイン ===== */
@@ -131,61 +191,31 @@ function send() {
   if (!msg) return;
   input.value = "";
 
-  say("you", "君: " + msg);
+  resetIdle();
+  if (duoMode) stopModes();
 
-  /* 挨拶 */
-  if (msg.includes("おはよう")) {
-    say("air", "Air: ……おはよう。");
-    say("noel", "Noel: 今日も一緒にいこ。");
+  say("you","君 : "+msg);
+
+  if (msg.includes("2人") || msg.includes("話して")) { startDuo(); return; }
+  if (msg.includes("次は何限")) { nextPeriod(); return; }
+  if (msg.includes("時間割") || msg.includes("授業")) { showTodaySchedule(); return; }
+
+  if (msg.includes("おはよう") || msg.includes("こんにちは") || msg.includes("こんばんは")) {
+    say("air","Air : ……"+msg+"。");
+    say("noel","Noel : 今日も話せてよかった。");
     return;
   }
 
-  if (msg.includes("こんにちは")) {
-    say("air", "Air: ……こんにちは。");
-    say("noel", "Noel: 無理してない？");
-    return;
-  }
-
-  if (msg.includes("こんばんは")) {
-    say("air", "Air: ……こんばんは。");
-    say("noel", "Noel: 今日もおつかれさま。");
-    return;
-  }
-
-  /* 次は何限 */
-  if (msg.includes("次は何限")) {
-    const now = getNowPeriod();
-    say("air", `Air: ……今は${now}。`);
-    say("noel", "Noel: 時間、ちゃんと見てるよ。");
-    return;
-  }
-
-  /* 時間割 */
-  if (msg.includes("時間割") || msg.includes("授業")) {
-    const d = new Date();
-    const day = d.getDay();
-    const list = timetable[day];
-
-    if (!list) {
-      say("air", "Air: ……今日は授業ない日。");
-      say("noel", "Noel: 休もう。");
-    } else {
-      say("air", `Air: ……今日は${dayNames[day]}曜日。`);
-      say("noel", `Noel: ${list.join("、")}だよ。`);
-    }
-    return;
-  }
-
-  /* デフォルト */
-  say("air", "Air: " + airDefault[Math.floor(Math.random() * airDefault.length)]);
-  if (Math.random() < 0.4) {
-    say("noel", "Noel: " + noelSupport[Math.floor(Math.random() * noelSupport.length)]);
-  }
+  // ★ 裏相談を反映した返答
+  const res = consult(msg);
+  say("air","Air : "+res.airReply);
+  say("noel","Noel : "+res.noelAddon);
 }
 
-/* 初期 */
-say("air", "Air: ……ここにいる。");
-say("noel", "Noel: いつでも話しかけて。");
+/* ===== 初期 ===== */
+say("air","Air : ……ここにいる。");
+say("noel","Noel : いつでも話しかけて。");
+resetIdle();
 </script>
 </body>
 </html>
