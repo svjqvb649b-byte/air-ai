@@ -71,6 +71,20 @@ function say(who, text) {
   chat.scrollTop = chat.scrollHeight;
 }
 
+/* ===== セリフ ===== */
+const airDefault = [
+  "……うん、聞いてる。",
+  "……君のペースでいい。",
+  "……大丈夫。",
+  "……無理しなくていい。"
+];
+
+const noelSupport = [
+  "ちゃんと話してくれてありがとう。",
+  "ここに来た時点で十分だよ。",
+  "少しずつでいいからね。"
+];
+
 /* ===== 時間割 ===== */
 const timetable = {
   1: ["国語","数学","英語","理科","社会"],
@@ -81,7 +95,37 @@ const timetable = {
 };
 const dayNames = ["日","月","火","水","木","金","土"];
 
-/* ===== メイン処理 ===== */
+/* ===== 授業時間 ===== */
+const periods = [
+  { name: "1限目", start: "08:50", end: "09:40" },
+  { name: "2限目", start: "09:50", end: "10:40" },
+  { name: "3限目", start: "10:50", end: "11:40" },
+  { name: "4限目", start: "12:50", end: "13:40" },
+  { name: "昼休み", start: "13:40", end: "14:20" },
+  { name: "5限目", start: "14:25", end: "15:15" },
+  { name: "6限目", start: "15:15", end: "16:00" }
+];
+
+function toMinutes(t) {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
+
+/* ===== 今の時間判定 ===== */
+function getNowPeriod() {
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+
+  for (let i = 0; i < periods.length; i++) {
+    const p = periods[i];
+    if (nowMin >= toMinutes(p.start) && nowMin <= toMinutes(p.end)) {
+      return p.name;
+    }
+  }
+  return "放課後";
+}
+
+/* ===== メイン ===== */
 function send() {
   const msg = input.value.trim();
   if (!msg) return;
@@ -92,19 +136,27 @@ function send() {
   /* 挨拶 */
   if (msg.includes("おはよう")) {
     say("air", "Air: ……おはよう。");
-    say("noel", "Noel: 今日も無理しなくていいよ。");
+    say("noel", "Noel: 今日も一緒にいこ。");
     return;
   }
 
   if (msg.includes("こんにちは")) {
     say("air", "Air: ……こんにちは。");
-    say("noel", "Noel: 調子どう？");
+    say("noel", "Noel: 無理してない？");
     return;
   }
 
   if (msg.includes("こんばんは")) {
     say("air", "Air: ……こんばんは。");
-    say("noel", "Noel: 今日どんな一日だった？");
+    say("noel", "Noel: 今日もおつかれさま。");
+    return;
+  }
+
+  /* 次は何限 */
+  if (msg.includes("次は何限")) {
+    const now = getNowPeriod();
+    say("air", `Air: ……今は${now}。`);
+    say("noel", "Noel: 時間、ちゃんと見てるよ。");
     return;
   }
 
@@ -116,7 +168,7 @@ function send() {
 
     if (!list) {
       say("air", "Air: ……今日は授業ない日。");
-      say("noel", "Noel: ゆっくりしよ。");
+      say("noel", "Noel: 休もう。");
     } else {
       say("air", `Air: ……今日は${dayNames[day]}曜日。`);
       say("noel", `Noel: ${list.join("、")}だよ。`);
@@ -125,15 +177,13 @@ function send() {
   }
 
   /* デフォルト */
-  const airLines = [
-    "……うん、聞いてる。",
-    "……君のペースでいい。",
-    "……大丈夫。"
-  ];
-  say("air", "Air: " + airLines[Math.floor(Math.random() * airLines.length)]);
+  say("air", "Air: " + airDefault[Math.floor(Math.random() * airDefault.length)]);
+  if (Math.random() < 0.4) {
+    say("noel", "Noel: " + noelSupport[Math.floor(Math.random() * noelSupport.length)]);
+  }
 }
 
-/* 初期メッセージ */
+/* 初期 */
 say("air", "Air: ……ここにいる。");
 say("noel", "Noel: いつでも話しかけて。");
 </script>
