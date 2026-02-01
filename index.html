@@ -16,7 +16,7 @@ html, body {
 
 #chat {
   padding: 16px;
-  height: calc(100vh - 80px);
+  height: calc(100vh - 120px);
   overflow-y: auto;
 }
 
@@ -38,18 +38,23 @@ input {
 }
 
 button {
-  margin-left: 8px;
-  padding: 0 18px;
+  padding: 8px 16px;
   border-radius: 20px;
   border: none;
   background: #38bdf8;
   color: #020617;
-  font-size: 16px;
+  font-size: 15px;
 }
 </style>
 </head>
 
 <body>
+
+<!-- 🔔 通知ON/OFF -->
+<div style="padding:8px;text-align:center;">
+  <button onclick="toggleNotify()" id="notifyBtn">🔕 通知：OFF</button>
+</div>
+
 <div id="chat"></div>
 
 <div id="inputArea">
@@ -70,159 +75,146 @@ function say(who, text) {
   chat.scrollTop = chat.scrollHeight;
 }
 
-/* ===== 時間割（1-1）===== */
+/* ===== 時間割 ===== */
 const timetable = {
-  1: ["数学Ⅰ", "英語コミュⅠ", "体育", "言語文化", "家庭基礎", "音楽Ⅰ"],
-  2: ["英語コミュⅠ", "現代の国語", "数学Ⅰ", "保健", "公共", "総合"],
-  3: ["英語コミュⅠ", "科学と人間生活", "言語文化", "歴史総合", "体育", "LHR"],
-  4: ["音楽Ⅰ", "科学と人間生活", "情報Ⅰ", "家庭基礎", "体育", "数学Ⅰ"],
-  5: ["公共", "数学Ⅰ", "英語コミュⅠ", "歴史総合", "現代の国語", "情報Ⅰ"]
+  1: ["数学Ⅰ","英語コミュⅠ","体育","言語文化","家庭基礎","音楽Ⅰ"],
+  2: ["英語コミュⅠ","現代の国語","数学Ⅰ","保健","公共","総合"],
+  3: ["英語コミュⅠ","科学と人間生活","言語文化","歴史総合","体育","LHR"],
+  4: ["音楽Ⅰ","科学と人間生活","情報Ⅰ","家庭基礎","体育","数学Ⅰ"],
+  5: ["公共","数学Ⅰ","英語コミュⅠ","歴史総合","現代の国語","情報Ⅰ"]
 };
-
 const dayNames = ["日","月","火","水","木","金","土"];
 
-/* ===== 時間設定 ===== */
+/* ===== 時限 ===== */
 const periods = [
-  { name: "1限目", start: "08:50", end: "09:40" },
-  { name: "2限目", start: "09:50", end: "10:40" },
-  { name: "3限目", start: "10:50", end: "11:40" },
-  { name: "4限目", start: "12:50", end: "13:40" },
-  { name: "昼休み", start: "13:40", end: "14:20" },
-  { name: "5限目", start: "14:25", end: "15:15" },
-  { name: "6限目", start: "15:15", end: "16:00" }
+  { name:"1限目", start:"08:50", end:"09:40" },
+  { name:"2限目", start:"09:50", end:"10:40" },
+  { name:"3限目", start:"10:50", end:"11:40" },
+  { name:"4限目", start:"12:50", end:"13:40" },
+  { name:"昼休み", start:"13:40", end:"14:20" },
+  { name:"5限目", start:"14:25", end:"15:15" },
+  { name:"6限目", start:"15:15", end:"16:00" }
 ];
 
-function nowPeriod() {
+function nowPeriodIndex() {
   const now = new Date();
-  const t = now.getHours() * 60 + now.getMinutes();
-
-  for (let i = 0; i < periods.length; i++) {
-    const [sh, sm] = periods[i].start.split(":").map(Number);
-    const [eh, em] = periods[i].end.split(":").map(Number);
-    if (t >= sh*60+sm && t < eh*60+em) return i;
+  const t = now.getHours()*60 + now.getMinutes();
+  for (let i=0;i<periods.length;i++) {
+    const [sh,sm]=periods[i].start.split(":").map(Number);
+    const [eh,em]=periods[i].end.split(":").map(Number);
+    if (t>=sh*60+sm && t<eh*60+em) return i;
   }
   return -1;
 }
 
-/* ===== モード管理 ===== */
-let duoMode = false;
-let idleTimer = null;
-let duoTimer = null;
-let turn = 0;
-
-/* ===== セリフ ===== */
-const duoAir = [
-  "……今日は落ち着いてる。",
-  "……時間、ちゃんと進んでる。",
-  "……大丈夫そう。"
-];
-
-const duoNoel = [
-  "うん、いい流れ。",
-  "無理してないね。",
-  "このままでいいよ。"
-];
-
-const idleAir = [
-  "……静かだね。",
-  "……待ってる。",
-  "……考え中。"
-];
-
-const idleNoel = [
-  "今はゆっくりでいいよ。",
-  "話したくなったら呼んで。",
-  "ここにいるからね。"
-];
+/* ===== 短期記憶 ===== */
+const memory=[];
+function remember(m){ memory.push(m); if(memory.length>5) memory.shift(); }
 
 /* ===== 2人会話 ===== */
-function startDuo() {
+let duoMode=false, duoTimer=null, turn=0;
+const duoAir=["……落ち着いてる。","……時間は進んでる。","……大丈夫そう。"];
+const duoNoel=["うん。","そのままでいい。","ちゃんと進んでる。"];
+
+function startDuo(){
   stopDuo();
-  duoMode = true;
+  duoMode=true;
   say("air","Air : ……少し話そう。");
-  duoTimer = setInterval(() => {
-    const i = Math.floor(turn / 2);
-    if (turn % 2 === 0)
-      say("air","Air : " + duoAir[i % duoAir.length]);
-    else
-      say("noel","Noel : " + duoNoel[i % duoNoel.length]);
+  duoTimer=setInterval(()=>{
+    const i=Math.floor(turn/2);
+    if(turn%2===0) say("air","Air : "+duoAir[i%duoAir.length]);
+    else say("noel","Noel : "+duoNoel[i%duoNoel.length]);
     turn++;
-  }, 4500);
+  },4500);
 }
+function stopDuo(){ clearInterval(duoTimer); duoMode=false; turn=0; }
 
-function stopDuo() {
-  clearInterval(duoTimer);
-  duoMode = false;
-  turn = 0;
-}
-
-/* ===== 無操作自動会話 ===== */
-function resetIdle() {
+/* ===== 自動会話 ===== */
+let idleTimer=null;
+function resetIdle(){
   clearTimeout(idleTimer);
-  idleTimer = setTimeout(() => {
-    if (!duoMode) startDuo();
-  }, 20000);
+  idleTimer=setTimeout(()=>{ if(!duoMode) startDuo(); },20000);
 }
 
-/* ===== 時間割表示 ===== */
-function showToday() {
-  const d = new Date();
-  const day = d.getDay();
-  const list = timetable[day];
-  if (!list) {
-    say("air","Air : ……今日は授業ない日。");
-    say("noel","Noel : 休めるね。");
+/* ===== 通知 ===== */
+let notifyEnabled=false;
+const moveSubjects=["体育","音楽Ⅰ","情報Ⅰ","科学と人間生活","家庭基礎"];
+
+function toggleNotify(){
+  if(!("Notification"in window)){
+    alert("このブラウザは通知に対応していません");
     return;
   }
+  if(!notifyEnabled){
+    Notification.requestPermission().then(p=>{
+      if(p==="granted"){
+        notifyEnabled=true;
+        notifyBtn.textContent="🔔 通知：ON";
+        say("noel","Noel : 通知、オンにしたよ。");
+      }
+    });
+  }else{
+    notifyEnabled=false;
+    notifyBtn.textContent="🔕 通知：OFF";
+    say("air","Air : ……通知、オフ。");
+  }
+}
+
+function checkMoveNotify(){
+  if(!notifyEnabled) return;
+  const now=new Date();
+  const day=now.getDay();
+  const list=timetable[day];
+  if(!list) return;
+
+  const nowMin=now.getHours()*60+now.getMinutes();
+  periods.forEach((p,i)=>{
+    const [sh,sm]=p.start.split(":").map(Number);
+    const startMin=sh*60+sm;
+    if(startMin-nowMin===5 && moveSubjects.includes(list[i])){
+      new Notification("Air & Noel",{
+        body:`Noel：次は「${list[i]}」。移動教室だよ。`
+      });
+    }
+  });
+}
+setInterval(checkMoveNotify,60000);
+
+/* ===== 機能 ===== */
+function showToday(){
+  const d=new Date(), day=d.getDay(), list=timetable[day];
+  if(!list){ say("air","Air : ……今日は授業ない。"); return; }
   say("air",`Air : ……今日は${dayNames[day]}曜日。`);
-  say("noel","Noel : 時間割は「" + list.join("、") + "」。");
+  say("noel","Noel : "+list.join("、"));
 }
 
-/* ===== 次は何限？ ===== */
-function showNext() {
-  const d = new Date();
-  const day = d.getDay();
-  const list = timetable[day];
-  if (!list) {
-    say("air","Air : ……今日は授業ない。");
-    return;
-  }
-  const p = nowPeriod();
-  if (p === -1 || periods[p].name === "昼休み") {
-    say("air","Air : ……今は授業時間じゃない。");
-    return;
-  }
-  say("air",`Air : ……今は${periods[p].name}。`);
-  say("noel",`Noel : 教科は「${list[p]}」だよ。`);
+function showNext(){
+  const d=new Date(), day=d.getDay(), list=timetable[day];
+  if(!list){ say("air","Air : ……今日は授業ない。"); return; }
+  const i=nowPeriodIndex();
+  if(i<0){ say("air","Air : ……今は授業外。"); return; }
+  say("air",`Air : ……今は${periods[i].name}。`);
+  say("noel",`Noel : ${list[i]}だよ。`);
 }
 
 /* ===== 送信 ===== */
-function send() {
-  const msg = input.value.trim();
-  if (!msg) return;
-  input.value = "";
-  resetIdle();
-  stopDuo();
+function send(){
+  const msg=input.value.trim();
+  if(!msg) return;
+  input.value="";
+  resetIdle(); stopDuo();
+  say("you","君 : "+msg);
+  remember(msg);
 
-  say("you","君 : " + msg);
-
-  if (msg.includes("2人で")) { startDuo(); return; }
-  if (msg.includes("時間割") || msg.includes("今日の授業")) { showToday(); return; }
-  if (msg.includes("次は何限")) { showNext(); return; }
-
-  if (msg.includes("おはよう")) {
+  if(msg.includes("2人")){ startDuo(); return; }
+  if(msg.includes("時間割")){ showToday(); return; }
+  if(msg.includes("次は")){ showNext(); return; }
+  if(msg.includes("おはよう")){
     say("air","Air : ……おはよう。");
-    say("noel","Noel : 今日も一緒にいこう。");
+    say("noel","Noel : 今日も一緒に。");
     return;
   }
-
-  if (msg.includes("こんにちは")) {
-    say("air","Air : ……こんにちは。");
-    say("noel","Noel : 調子どう？");
-    return;
-  }
-
-  say("air","Air : ……うん、聞いてる。");
+  say("air","Air : ……聞いてる。");
 }
 
 /* ===== 初期 ===== */
