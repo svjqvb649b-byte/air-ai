@@ -3,189 +3,148 @@ window.addEventListener("DOMContentLoaded", () => {
   const send = document.getElementById("send");
   const log = document.getElementById("log");
 
-  /* =========================
-     記憶
-  ========================= */
-  const memory = {
-    short: {
-      lastTalkTime: Date.now()
-    },
-    schedule: {
-      monday: ["国語","数学","英語","理科","体育","社会"],
-      tuesday: ["数学","英語","音楽","理科","国語"],
-      wednesday: ["社会","数学","英語","美術","体育"],
-      thursday: ["理科","国語","数学","英語","家庭科"],
-      friday: ["英語","社会","数学","理科","総合"],
-      saturday: [],
-      sunday: []
-    }
-  };
-
-  const days = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
-
-  /* =========================
-     時間設定（重要）
-  ========================= */
-  const periods = [
-    { start: "08:50", end: "09:40" },
-    { start: "09:50", end: "10:40" },
-    { start: "10:50", end: "11:40" },
-    { start: "12:50", end: "13:40" },
-    { start: "14:25", end: "15:15" },
-    { start: "15:15", end: "16:00" }
-  ];
-
-  function toMinutes(time) {
-    const [h, m] = time.split(":").map(Number);
-    return h * 60 + m;
-  }
-
-  function nowMinutes() {
-    const d = new Date();
-    return d.getHours() * 60 + d.getMinutes();
-  }
-
-  function getNextPeriodIndex() {
-    const now = nowMinutes();
-    for (let i = 0; i < periods.length; i++) {
-      if (now < toMinutes(periods[i].start)) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  function getCurrentPeriodIndex() {
-    const now = nowMinutes();
-    for (let i = 0; i < periods.length; i++) {
-      if (
-        now >= toMinutes(periods[i].start) &&
-        now <= toMinutes(periods[i].end)
-      ) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  /* =========================
-     表示
-  ========================= */
-  function addLine(name, text) {
-    const div = document.createElement("div");
-    div.innerHTML = `<strong>${name}：</strong>${text}`;
-    log.appendChild(div);
+  /* ========= ログ表示 ========= */
+  function addLog(name, text) {
+    const p = document.createElement("p");
+    p.innerHTML = `<span class="${name}">${name} :</span> ${text}`;
+    log.appendChild(p);
     log.scrollTop = log.scrollHeight;
   }
 
-  function todayKey() {
-    return days[new Date().getDay()];
+  /* ========= 時間割 ========= */
+  const schedule = {
+    "月": ["国語", "数学", "英語", "理科", "社会", "体育"],
+    "火": ["数学", "英語", "国語", "理科", "音楽", "美術"],
+    "水": ["社会", "数学", "英語", "国語", "技術"],
+    "木": ["英語", "理科", "数学", "社会", "体育"],
+    "金": ["国語", "数学", "英語", "総合"]
+  };
+
+  /* ========= 授業時間 ========= */
+  const classTimes = [
+    { name: "1限目", start: 8 * 60 + 50 },
+    { name: "2限目", start: 9 * 60 + 50 },
+    { name: "3限目", start: 10 * 60 + 50 },
+    { name: "4限目", start: 12 * 60 + 50 },
+    { name: "5限目", start: 14 * 60 + 25 },
+    { name: "6限目", start: 15 * 60 + 15 }
+  ];
+
+  /* ========= 日付補助 ========= */
+  function getTodayKey(offset = 0) {
+    const days = ["日", "月", "火", "水", "木", "金", "土"];
+    const d = new Date();
+    d.setDate(d.getDate() + offset);
+    return days[d.getDay()];
   }
 
-  /* =========================
-     Air（シエスタ風）
-  ========================= */
-  function airReply(text) {
-    if (/次.*何限/.test(text)) {
-      const day = todayKey();
-      const list = memory.schedule[day];
-      if (!list || list.length === 0) return "……今日は、授業ない。";
-
-      const current = getCurrentPeriodIndex();
-      const next = getNextPeriodIndex();
-
-      if (current !== -1) {
-        return `……次は${current + 2}限。${list[current + 1] || "もう終わり"}`;
-      }
-
-      if (next !== -1) {
-        return `……次は${next + 1}限。${list[next]}`;
-      }
-
-      return "……今日は、もう終わり。";
+  /* ========= 予定表示 ========= */
+  function showSchedule(dayKey) {
+    if (!schedule[dayKey]) {
+      addLog("Noel", "その日は授業がないよ。");
+      return;
     }
-
-    if (/おはよう/.test(text)) return "……おはよう。";
-    if (/こんにちは/.test(text)) return "……こんにちは。";
-    if (/こんばんは/.test(text)) return "……こんばんは。";
-
-    if (/予定|時間割/.test(text)) {
-      const list = memory.schedule[todayKey()];
-      if (!list || list.length === 0) return "……今日は休み。";
-      return "……" + list.map((s,i)=>`${i+1}限:${s}`).join("、");
-    }
-
-    return "……うん。";
+    addLog("Noel", `${dayKey}曜日の予定だよ。`);
+    schedule[dayKey].forEach((sub, i) => {
+      addLog("Air", `……${i + 1}限目は ${sub}`);
+    });
   }
 
-  /* =========================
-     Noel
-  ========================= */
-  function noelReply(text) {
-    if (/次.*何限/.test(text)) {
-      const day = todayKey();
-      const list = memory.schedule[day];
-      if (!list || list.length === 0) return "今日はお休みだよ。";
+  /* ========= 次の授業 ========= */
+  function showNextClass() {
+    const now = new Date();
+    const time = now.getHours() * 60 + now.getMinutes();
 
-      const current = getCurrentPeriodIndex();
-      const next = getNextPeriodIndex();
-
-      if (current !== -1) {
-        return list[current + 1]
-          ? `次は${current + 2}限、${list[current + 1]}だよ`
-          : "これで今日は最後だね";
+    for (let c of classTimes) {
+      if (time < c.start) {
+        addLog("Air", `……次は ${c.name}。`);
+        return;
       }
-
-      if (next !== -1) {
-        return `次は${next + 1}限、${list[next]}だよ`;
-      }
-
-      return "今日はもう授業終わりだよ";
     }
-
-    if (/おはよう/.test(text)) return "おはよう！";
-    if (/こんにちは/.test(text)) return "こんにちは";
-    if (/こんばんは/.test(text)) return "こんばんは";
-
-    return "続けていいよ";
+    addLog("Noel", "今日はもう授業は終わってるよ。");
   }
 
-  /* =========================
-     無言時の自動会話
-  ========================= */
-  setInterval(() => {
-    if (Date.now() - memory.short.lastTalkTime > 30000) {
-      addLine("Air", "……静かだね。");
-      setTimeout(() => {
-        addLine("Noel", "集中してるのかもね");
-      }, 1200);
-      memory.short.lastTalkTime = Date.now();
-    }
-  }, 5000);
+  /* ========= 2人雑談 ========= */
+  function startAirNoelTalk() {
+    const talks = [
+      ["Air", "……今日はよく頑張った。"],
+      ["Noel", "うん、ちゃんとやりきったね。"],
+      ["Air", "……それだけで十分。"],
+      ["Noel", "今日は合格だよ。"]
+    ];
 
-  /* =========================
-     送信
-  ========================= */
+    let i = 0;
+    const timer = setInterval(() => {
+      if (i >= talks.length) {
+        clearInterval(timer);
+        return;
+      }
+      addLog(talks[i][0], talks[i][1]);
+      i++;
+    }, 2500);
+  }
+
+  /* ========= メイン処理 ========= */
   send.addEventListener("click", () => {
     const text = input.value.trim();
     if (!text) return;
-
-    addLine("君", text);
-    memory.short.lastTalkTime = Date.now();
-
-    setTimeout(() => addLine("Air", airReply(text)), 400);
-    setTimeout(() => addLine("Noel", noelReply(text)), 900);
-
+    addLog("君", text);
     input.value = "";
+
+    /* --- 挨拶 --- */
+    if (text.includes("おはよう")) {
+      addLog("Air", "……おはよう。");
+      addLog("Noel", "今日も無理しなくていいよ。");
+      return;
+    }
+    if (text.includes("こんにちは")) {
+      addLog("Air", "……こんにちは。");
+      addLog("Noel", "調子どう？");
+      return;
+    }
+    if (text.includes("こんばんは")) {
+      addLog("Air", "……こんばんは。今日はどんな一日だった？");
+      addLog("Noel", "ここまでお疲れさま。");
+      return;
+    }
+
+    /* --- 予定 --- */
+    if (text.includes("明日")) {
+      showSchedule(getTodayKey(1));
+      return;
+    }
+    if (text.includes("今日")) {
+      showSchedule(getTodayKey(0));
+      return;
+    }
+    if (text.includes("月")) { showSchedule("月"); return; }
+    if (text.includes("火")) { showSchedule("火"); return; }
+    if (text.includes("水")) { showSchedule("水"); return; }
+    if (text.includes("木")) { showSchedule("木"); return; }
+    if (text.includes("金")) { showSchedule("金"); return; }
+
+    /* --- 次は何限 --- */
+    if (text.includes("次は何限")) {
+      showNextClass();
+      return;
+    }
+
+    /* --- 雑談開始 --- */
+    if (
+      text.includes("雑談") ||
+      text.includes("2人で") ||
+      text.includes("話して")
+    ) {
+      addLog("Noel", "じゃあ少し話そうか。");
+      startAirNoelTalk();
+      return;
+    }
+
+    /* --- デフォルト --- */
+    addLog("Air", "……うん、聞いてる。");
   });
 
-  input.addEventListener("keydown", e => {
-    if (e.key === "Enter") send.click();
-  });
-
-  /* =========================
-     初期
-  ========================= */
-  addLine("Air", "……起動、完了。");
-  addLine("Noel", "今日はどんな予定？");
+  /* ========= 起動メッセージ ========= */
+  addLog("Air", "……ここにいる。");
+  addLog("Noel", "いつでも話しかけて。");
 });
