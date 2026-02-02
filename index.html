@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Air & Noel</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
@@ -12,16 +12,19 @@
   <button id="notifyBtn">🔔 通知: OFF</button>
 </header>
 
-<main id="chatArea"></main>
+<main>
+  <div id="chat"></div>
+</main>
 
 <footer>
-  <input id="userInput" placeholder="ここに話しかけて">
-  <button id="sendBtn">送る</button>
+  <input id="input" placeholder="ここに話しかけて" />
+  <button id="send">送る</button>
 </footer>
 
+<!-- 立ち絵エリア -->
 <div id="characters">
-  <img id="airImg">
-  <img id="noelImg">
+  <img id="airImg" src="air.png" alt="Air">
+  <img id="noelImg" src="noel.png" alt="Noel">
 </div>
 
 <script src="app.js"></script>
