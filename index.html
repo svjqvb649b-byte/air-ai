@@ -1,226 +1,154 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>Air & Noel</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  background: #020617;
-  color: #e5e7eb;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont;
-}
-
-#chat {
-  padding: 16px;
-  height: calc(100vh - 120px);
-  overflow-y: auto;
-}
-
-.you { color: #38bdf8; margin: 10px 0; }
-.air { color: #e5e7eb; margin: 10px 0; }
-.noel { color: #a5b4fc; margin: 10px 0; }
-
-#inputArea {
-  display: flex;
-  padding: 10px;
-}
-
-input {
-  flex: 1;
-  padding: 12px 16px;
-  border-radius: 20px;
-  border: none;
-  font-size: 16px;
-}
-
-button {
-  padding: 8px 16px;
-  border-radius: 20px;
-  border: none;
-  background: #38bdf8;
-  color: #020617;
-  font-size: 15px;
-}
+  body {
+    background:#0b1020;
+    color:#e6e9ff;
+    font-family:sans-serif;
+    margin:0;
+  }
+  #header {
+    padding:10px;
+    text-align:center;
+  }
+  #notifyBtn {
+    background:#2aa8ff;
+    color:white;
+    border:none;
+    border-radius:20px;
+    padding:8px 16px;
+  }
+  #chat {
+    padding:10px;
+    height:70vh;
+    overflow-y:auto;
+  }
+  .air { color:#ffffff; }
+  .noel { color:#b8c7ff; }
+  .you { color:#4fd1ff; }
+  #inputArea {
+    display:flex;
+    padding:10px;
+  }
+  input {
+    flex:1;
+    padding:10px;
+    border-radius:20px;
+    border:none;
+  }
+  button {
+    margin-left:8px;
+    border-radius:20px;
+    border:none;
+    padding:10px 16px;
+  }
 </style>
 </head>
 
 <body>
 
-<!-- 🔔 通知ON/OFF -->
-<div style="padding:8px;text-align:center;">
-  <button onclick="toggleNotify()" id="notifyBtn">🔕 通知：OFF</button>
+<div id="header">
+  <button id="notifyBtn">🔕 通知：OFF</button>
 </div>
 
 <div id="chat"></div>
 
 <div id="inputArea">
-  <input id="text" placeholder="ここに話しかけて">
+  <input id="text" placeholder="ここに話しかけて" />
   <button onclick="send()">送る</button>
 </div>
 
 <script>
-const chat = document.getElementById("chat");
-const input = document.getElementById("text");
+/* ========= 状態 ========= */
+let notifyEnabled = false;
 
-/* ===== 表示 ===== */
-function say(who, text) {
-  const div = document.createElement("div");
-  div.className = who;
-  div.textContent = text;
+/* ========= 時間割 ========= */
+const timetable = {
+  "月曜日": ["数学I","英語コミュI","体育","言語文化","家庭基礎","音楽I"],
+  "火曜日": ["英語コミュI","現代の国語","数学I","保健","公共","総合"],
+  "水曜日": ["英語コミュI","科学と人間生活","言語文化","歴史総合","体育","LHR"],
+  "木曜日": ["音楽I","科学と人間生活","情報I","家庭基礎","体育","数学I"],
+  "金曜日": ["公共","数学I","英語コミュI","歴史総合","現代の国語","情報I"]
+};
+
+/* ========= 定型文 ========= */
+const AIR_GREET = ["……聞いてる。","……ここにいる。"];
+const NOEL_GREET = ["いつでも話しかけて。","うん。"];
+
+const AIR_CALM = ["……落ち着いてる。","……大丈夫そう。"];
+
+/* ========= UI ========= */
+function add(name,text){
+  const div=document.createElement("div");
+  div.className = name==="Air"?"air":name==="Noel"?"noel":"you";
+  div.textContent = `${name} : ${text}`;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 }
 
-/* ===== 時間割 ===== */
-const timetable = {
-  1: ["数学Ⅰ","英語コミュⅠ","体育","言語文化","家庭基礎","音楽Ⅰ"],
-  2: ["英語コミュⅠ","現代の国語","数学Ⅰ","保健","公共","総合"],
-  3: ["英語コミュⅠ","科学と人間生活","言語文化","歴史総合","体育","LHR"],
-  4: ["音楽Ⅰ","科学と人間生活","情報Ⅰ","家庭基礎","体育","数学Ⅰ"],
-  5: ["公共","数学Ⅰ","英語コミュⅠ","歴史総合","現代の国語","情報Ⅰ"]
-};
-const dayNames = ["日","月","火","水","木","金","土"];
+/* ========= 判定 ========= */
+const isGreeting = t => /おはよう|こんにちは|こんばんは|おやすみ/.test(t);
+const isSchedule = t => /予定|時間割|何限|授業/.test(t);
+const isTwoTalk = t => /2人|ふたり/.test(t);
 
-/* ===== 時限 ===== */
-const periods = [
-  { name:"1限目", start:"08:50", end:"09:40" },
-  { name:"2限目", start:"09:50", end:"10:40" },
-  { name:"3限目", start:"10:50", end:"11:40" },
-  { name:"4限目", start:"12:50", end:"13:40" },
-  { name:"昼休み", start:"13:40", end:"14:20" },
-  { name:"5限目", start:"14:25", end:"15:15" },
-  { name:"6限目", start:"15:15", end:"16:00" }
-];
-
-function nowPeriodIndex() {
-  const now = new Date();
-  const t = now.getHours()*60 + now.getMinutes();
-  for (let i=0;i<periods.length;i++) {
-    const [sh,sm]=periods[i].start.split(":").map(Number);
-    const [eh,em]=periods[i].end.split(":").map(Number);
-    if (t>=sh*60+sm && t<eh*60+em) return i;
+/* ========= 曜日抽出 ========= */
+function getDay(text){
+  if(/明日/.test(text)){
+    const d=["日曜日","月曜日","火曜日","水曜日","木曜日","金曜日","土曜日"];
+    return d[new Date().getDay()+1] || "月曜日";
   }
-  return -1;
+  const days=["月曜日","火曜日","水曜日","木曜日","金曜日"];
+  return days.find(d=>text.includes(d)) || "月曜日";
 }
 
-/* ===== 短期記憶 ===== */
-const memory=[];
-function remember(m){ memory.push(m); if(memory.length>5) memory.shift(); }
-
-/* ===== 2人会話 ===== */
-let duoMode=false, duoTimer=null, turn=0;
-const duoAir=["……落ち着いてる。","……時間は進んでる。","……大丈夫そう。"];
-const duoNoel=["うん。","そのままでいい。","ちゃんと進んでる。"];
-
-function startDuo(){
-  stopDuo();
-  duoMode=true;
-  say("air","Air : ……少し話そう。");
-  duoTimer=setInterval(()=>{
-    const i=Math.floor(turn/2);
-    if(turn%2===0) say("air","Air : "+duoAir[i%duoAir.length]);
-    else say("noel","Noel : "+duoNoel[i%duoNoel.length]);
-    turn++;
-  },4500);
-}
-function stopDuo(){ clearInterval(duoTimer); duoMode=false; turn=0; }
-
-/* ===== 自動会話 ===== */
-let idleTimer=null;
-function resetIdle(){
-  clearTimeout(idleTimer);
-  idleTimer=setTimeout(()=>{ if(!duoMode) startDuo(); },20000);
-}
-
-/* ===== 通知 ===== */
-let notifyEnabled=false;
-const moveSubjects=["体育","音楽Ⅰ","情報Ⅰ","科学と人間生活","家庭基礎"];
-
-function toggleNotify(){
-  if(!("Notification"in window)){
-    alert("このブラウザは通知に対応していません");
-    return;
-  }
-  if(!notifyEnabled){
-    Notification.requestPermission().then(p=>{
-      if(p==="granted"){
-        notifyEnabled=true;
-        notifyBtn.textContent="🔔 通知：ON";
-        say("noel","Noel : 通知、オンにしたよ。");
-      }
-    });
-  }else{
-    notifyEnabled=false;
-    notifyBtn.textContent="🔕 通知：OFF";
-    say("air","Air : ……通知、オフ。");
-  }
-}
-
-function checkMoveNotify(){
-  if(!notifyEnabled) return;
-  const now=new Date();
-  const day=now.getDay();
-  const list=timetable[day];
-  if(!list) return;
-
-  const nowMin=now.getHours()*60+now.getMinutes();
-  periods.forEach((p,i)=>{
-    const [sh,sm]=p.start.split(":").map(Number);
-    const startMin=sh*60+sm;
-    if(startMin-nowMin===5 && moveSubjects.includes(list[i])){
-      new Notification("Air & Noel",{
-        body:`Noel：次は「${list[i]}」。移動教室だよ。`
-      });
-    }
-  });
-}
-setInterval(checkMoveNotify,60000);
-
-/* ===== 機能 ===== */
-function showToday(){
-  const d=new Date(), day=d.getDay(), list=timetable[day];
-  if(!list){ say("air","Air : ……今日は授業ない。"); return; }
-  say("air",`Air : ……今日は${dayNames[day]}曜日。`);
-  say("noel","Noel : "+list.join("、"));
-}
-
-function showNext(){
-  const d=new Date(), day=d.getDay(), list=timetable[day];
-  if(!list){ say("air","Air : ……今日は授業ない。"); return; }
-  const i=nowPeriodIndex();
-  if(i<0){ say("air","Air : ……今は授業外。"); return; }
-  say("air",`Air : ……今は${periods[i].name}。`);
-  say("noel",`Noel : ${list[i]}だよ。`);
-}
-
-/* ===== 送信 ===== */
+/* ========= 送信 ========= */
 function send(){
-  const msg=input.value.trim();
-  if(!msg) return;
-  input.value="";
-  resetIdle(); stopDuo();
-  say("you","君 : "+msg);
-  remember(msg);
+  const t=text.value.trim();
+  if(!t) return;
+  add("君",t);
+  text.value="";
 
-  if(msg.includes("2人")){ startDuo(); return; }
-  if(msg.includes("時間割")){ showToday(); return; }
-  if(msg.includes("次は")){ showNext(); return; }
-  if(msg.includes("おはよう")){
-    say("air","Air : ……おはよう。");
-    say("noel","Noel : 今日も一緒に。");
+  // ★ まず反応（消さない）
+  add("Air","……聞いてる。");
+
+  // 挨拶
+  if(isGreeting(t)){
+    add("Air",AIR_GREET[Math.floor(Math.random()*AIR_GREET.length)]);
+    add("Noel",NOEL_GREET[Math.floor(Math.random()*NOEL_GREET.length)]);
     return;
   }
-  say("air","Air : ……聞いてる。");
+
+  // 予定
+  if(isSchedule(t)){
+    const day=getDay(t);
+    add("Noel",`${day}の予定だよ。`);
+    timetable[day].forEach((s,i)=>{
+      add("Air",`${i+1}限目：${s}`);
+    });
+    return;
+  }
+
+  // 2人会話
+  if(isTwoTalk(t)){
+    add("Air","……少し話そう。");
+    add("Noel","うん。");
+    add("Air",AIR_CALM[Math.floor(Math.random()*AIR_CALM.length)]);
+    return;
+  }
+
+  // 通常
+  add("Noel","そのままでいい。");
 }
 
-/* ===== 初期 ===== */
-say("air","Air : ……ここにいる。");
-say("noel","Noel : いつでも話しかけて。");
-resetIdle();
+/* ========= 通知 ========= */
+notifyBtn.onclick=()=>{
+  notifyEnabled=!notifyEnabled;
+  notifyBtn.textContent = notifyEnabled?"🔔 通知：ON":"🔕 通知：OFF";
+};
 </script>
+
 </body>
 </html>
