@@ -14,8 +14,10 @@ html, body {
   background: #020617;
   color: #e5e7eb;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 16px;
-  line-height: 1.7;
+
+  /* ★ 全体の基準文字サイズをアップ */
+  font-size: 18px;
+  line-height: 1.8;
 }
 
 #app {
@@ -24,10 +26,11 @@ html, body {
   height: 100%;
 }
 
+/* ===== 上部 ===== */
 #top {
   display: flex;
   justify-content: center;
-  padding: 10px;
+  padding: 12px;
   flex-shrink: 0;
 }
 
@@ -35,42 +38,60 @@ html, body {
   background: #38bdf8;
   color: #020617;
   border: none;
-  border-radius: 20px;
-  padding: 6px 14px;
+  border-radius: 24px;
+  padding: 8px 18px;
+  font-size: 16px;
 }
 
+/* ===== チャット ===== */
 #chat {
   flex: 1;
-  padding: 16px;
+  padding: 18px;
   overflow-y: auto;
 }
 
-.you { color: #38bdf8; margin: 8px 0; }
-.air { color: #e5e7eb; margin: 8px 0; }
-.noel { color: #a5b4fc; margin: 8px 0; }
+/* 話者ごとの文字サイズを明示 */
+.you {
+  color: #38bdf8;
+  margin: 10px 0;
+  font-size: 18px;
+}
 
+.air {
+  color: #e5e7eb;
+  margin: 10px 0;
+  font-size: 18px;
+}
+
+.noel {
+  color: #a5b4fc;
+  margin: 10px 0;
+  font-size: 18px;
+}
+
+/* ===== 入力エリア ===== */
 #inputArea {
   display: flex;
-  padding: 10px;
+  padding: 12px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
 input {
   flex: 1;
-  padding: 12px 16px;
-  border-radius: 20px;
+  padding: 14px 18px;
+  border-radius: 24px;
   border: none;
-  font-size: 16px;
+  font-size: 18px;
 }
 
 button {
-  margin-left: 8px;
-  padding: 0 18px;
-  border-radius: 20px;
+  padding: 0 22px;
+  border-radius: 24px;
   border: none;
   background: #38bdf8;
   color: #020617;
-  font-size: 16px;
+  font-size: 18px;
 }
 </style>
 </head>
@@ -97,7 +118,6 @@ let lastTalk = Date.now();
 let duoMode = false;
 let duoTimer = null;
 
-/* ===== 会話データ ===== */
 const airLines = [
   "……落ち着いてる。",
   "……時間は流れてる。",
@@ -112,7 +132,6 @@ const noelLines = [
   "ここにいるよ。"
 ];
 
-/* ===== 表示 ===== */
 function add(who, text) {
   const div = document.createElement("div");
   div.className = who;
@@ -122,7 +141,6 @@ function add(who, text) {
   chat.scrollTop = chat.scrollHeight;
 }
 
-/* ===== 送信 ===== */
 function send() {
   const v = text.value.trim();
   if (!v) return;
@@ -152,7 +170,6 @@ function send() {
   add("air","……聞いてる。");
 }
 
-/* ===== 2人会話 ===== */
 function startDuo() {
   if (duoMode) return;
   duoMode = true;
@@ -175,20 +192,17 @@ function stopDuo() {
   if (duoTimer) clearInterval(duoTimer);
 }
 
-/* ===== 放置検知 ===== */
 setInterval(() => {
   if (Date.now() - lastTalk > 60000 && !duoMode) {
     startDuo();
   }
 }, 5000);
 
-/* ===== 通知 ===== */
 notifyBtn.onclick = () => {
   notifyOn = !notifyOn;
   notifyBtn.textContent = notifyOn ? "🔔 通知：ON" : "🔕 通知：OFF";
 };
 
-/* ===== 初期 ===== */
 add("air","……ここにいる。");
 add("noel","いつでも話しかけて。");
 </script>
