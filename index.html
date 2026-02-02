@@ -1,211 +1,29 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-<title>Air & Noel</title>
-
-<style>
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  background: #020617;
-  color: #e5e7eb;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-
-  /* ★ 全体の基準文字サイズをアップ */
-  font-size: 18px;
-  line-height: 1.8;
-}
-
-#app {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-/* ===== 上部 ===== */
-#top {
-  display: flex;
-  justify-content: center;
-  padding: 12px;
-  flex-shrink: 0;
-}
-
-#notifyBtn {
-  background: #38bdf8;
-  color: #020617;
-  border: none;
-  border-radius: 24px;
-  padding: 8px 18px;
-  font-size: 16px;
-}
-
-/* ===== チャット ===== */
-#chat {
-  flex: 1;
-  padding: 18px;
-  overflow-y: auto;
-}
-
-/* 話者ごとの文字サイズを明示 */
-.you {
-  color: #38bdf8;
-  margin: 10px 0;
-  font-size: 18px;
-}
-
-.air {
-  color: #e5e7eb;
-  margin: 10px 0;
-  font-size: 18px;
-}
-
-.noel {
-  color: #a5b4fc;
-  margin: 10px 0;
-  font-size: 18px;
-}
-
-/* ===== 入力エリア ===== */
-#inputArea {
-  display: flex;
-  padding: 12px;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-input {
-  flex: 1;
-  padding: 14px 18px;
-  border-radius: 24px;
-  border: none;
-  font-size: 18px;
-}
-
-button {
-  padding: 0 22px;
-  border-radius: 24px;
-  border: none;
-  background: #38bdf8;
-  color: #020617;
-  font-size: 18px;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Air & Noel</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-<div id="app">
 
-  <div id="top">
-    <button id="notifyBtn">🔔 通知：ON</button>
-  </div>
+<header>
+  <button id="notifyBtn">🔔 通知: OFF</button>
+</header>
 
-  <div id="chat"></div>
+<main id="chatArea"></main>
 
-  <div id="inputArea">
-    <input id="text" placeholder="ここに話しかけて" />
-    <button onclick="send()">送る</button>
-  </div>
+<footer>
+  <input id="userInput" placeholder="ここに話しかけて">
+  <button id="sendBtn">送る</button>
+</footer>
 
+<div id="characters">
+  <img id="airImg">
+  <img id="noelImg">
 </div>
 
-<script>
-let notifyOn = true;
-let lastTalk = Date.now();
-let duoMode = false;
-let duoTimer = null;
-
-const airLines = [
-  "……落ち着いてる。",
-  "……時間は流れてる。",
-  "……無理はしてない。",
-  "……静かでいい。"
-];
-
-const noelLines = [
-  "うん。",
-  "ちゃんと進んでるよ。",
-  "今はこれでいいと思う。",
-  "ここにいるよ。"
-];
-
-function add(who, text) {
-  const div = document.createElement("div");
-  div.className = who;
-  div.textContent =
-    (who === "you" ? "君" : who === "air" ? "Air" : "Noel") + " : " + text;
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
-}
-
-function send() {
-  const v = text.value.trim();
-  if (!v) return;
-  text.value = "";
-  add("you", v);
-
-  lastTalk = Date.now();
-  stopDuo();
-
-  if (/2人で話|雑談/.test(v)) {
-    startDuo();
-    return;
-  }
-
-  if (/おはよう|こんにちは|こんばんは/.test(v)) {
-    add("air","……聞いてる。");
-    add("noel","ちゃんと届いてるよ。");
-    return;
-  }
-
-  if (/ありがとう/.test(v)) {
-    add("air","……問題ない。");
-    add("noel","どういたしまして。");
-    return;
-  }
-
-  add("air","……聞いてる。");
-}
-
-function startDuo() {
-  if (duoMode) return;
-  duoMode = true;
-  add("air","……少し話そう。");
-
-  let turn = 0;
-  duoTimer = setInterval(() => {
-    if (!duoMode) return;
-    if (turn % 2 === 0) {
-      add("air", airLines[Math.floor(Math.random()*airLines.length)]);
-    } else {
-      add("noel", noelLines[Math.floor(Math.random()*noelLines.length)]);
-    }
-    turn++;
-  }, 4000);
-}
-
-function stopDuo() {
-  duoMode = false;
-  if (duoTimer) clearInterval(duoTimer);
-}
-
-setInterval(() => {
-  if (Date.now() - lastTalk > 60000 && !duoMode) {
-    startDuo();
-  }
-}, 5000);
-
-notifyBtn.onclick = () => {
-  notifyOn = !notifyOn;
-  notifyBtn.textContent = notifyOn ? "🔔 通知：ON" : "🔕 通知：OFF";
-};
-
-add("air","……ここにいる。");
-add("noel","いつでも話しかけて。");
-</script>
-
+<script src="app.js"></script>
 </body>
 </html>
