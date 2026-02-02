@@ -4,151 +4,181 @@
 <meta charset="UTF-8" />
 <title>Air & Noel</title>
 <style>
-  body {
-    background:#0b1020;
-    color:#e6e9ff;
-    font-family:sans-serif;
-    margin:0;
-  }
-  #header {
-    padding:10px;
-    text-align:center;
-  }
-  #notifyBtn {
-    background:#2aa8ff;
-    color:white;
-    border:none;
-    border-radius:20px;
-    padding:8px 16px;
-  }
-  #chat {
-    padding:10px;
-    height:70vh;
-    overflow-y:auto;
-  }
-  .air { color:#ffffff; }
-  .noel { color:#b8c7ff; }
-  .you { color:#4fd1ff; }
-  #inputArea {
-    display:flex;
-    padding:10px;
-  }
-  input {
-    flex:1;
-    padding:10px;
-    border-radius:20px;
-    border:none;
-  }
-  button {
-    margin-left:8px;
-    border-radius:20px;
-    border:none;
-    padding:10px 16px;
-  }
+body {
+  background:#0b1020;
+  color:#fff;
+  font-family:sans-serif;
+}
+#chat {
+  height:80vh;
+  overflow-y:auto;
+}
+.air { color:#ccc; }
+.noel { color:#9ad; }
+.user { color:#4af; }
+button { margin:4px; }
 </style>
 </head>
-
 <body>
 
-<div id="header">
-  <button id="notifyBtn">🔕 通知：OFF</button>
-</div>
-
+<button id="notifyBtn">🔔 通知：OFF</button>
 <div id="chat"></div>
 
-<div id="inputArea">
-  <input id="text" placeholder="ここに話しかけて" />
-  <button onclick="send()">送る</button>
-</div>
+<input id="input" placeholder="ここに話しかけて" />
+<button onclick="send()">送る</button>
 
 <script>
-/* ========= 状態 ========= */
-let notifyEnabled = false;
+// =====================
+// 状態
+// =====================
+let notificationEnabled = false;
+let twoPersonMode = false;
+let lastUserTime = Date.now();
 
-/* ========= 時間割 ========= */
+let memory = [];
+const MEMORY_LIMIT = 5;
+
+// =====================
+// 時間割
+// =====================
 const timetable = {
-  "月曜日": ["数学I","英語コミュI","体育","言語文化","家庭基礎","音楽I"],
-  "火曜日": ["英語コミュI","現代の国語","数学I","保健","公共","総合"],
-  "水曜日": ["英語コミュI","科学と人間生活","言語文化","歴史総合","体育","LHR"],
-  "木曜日": ["音楽I","科学と人間生活","情報I","家庭基礎","体育","数学I"],
-  "金曜日": ["公共","数学I","英語コミュI","歴史総合","現代の国語","情報I"]
+  Monday: ["数学Ⅰ","英語コミュⅠ","体育","言語文化","家庭基礎","音楽Ⅰ"],
+  Tuesday:["英語コミュⅠ","現代の国語","数学Ⅰ","保健","公共","総合"],
+  Wednesday:["英語コミュⅠ","科学と人間生活","言語文化","歴史総合","体育","LHR"],
+  Thursday:["音楽Ⅰ","科学と人間生活","情報Ⅰ","家庭基礎","体育","数学Ⅰ"],
+  Friday:["公共","数学Ⅰ","英語コミュⅠ","歴史総合","現代の国語","情報Ⅰ"]
 };
 
-/* ========= 定型文 ========= */
-const AIR_GREET = ["……聞いてる。","……ここにいる。"];
-const NOEL_GREET = ["いつでも話しかけて。","うん。"];
-
-const AIR_CALM = ["……落ち着いてる。","……大丈夫そう。"];
-
-/* ========= UI ========= */
-function add(name,text){
-  const div=document.createElement("div");
-  div.className = name==="Air"?"air":name==="Noel"?"noel":"you";
-  div.textContent = `${name} : ${text}`;
+// =====================
+// ユーティリティ
+// =====================
+function addMessage(who, text) {
+  const div = document.createElement("div");
+  div.className = who;
+  div.textContent = `${who === "user" ? "君" : who} : ${text}`;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 }
 
-/* ========= 判定 ========= */
-const isGreeting = t => /おはよう|こんにちは|こんばんは|おやすみ/.test(t);
-const isSchedule = t => /予定|時間割|何限|授業/.test(t);
-const isTwoTalk = t => /2人|ふたり/.test(t);
-
-/* ========= 曜日抽出 ========= */
-function getDay(text){
-  if(/明日/.test(text)){
-    const d=["日曜日","月曜日","火曜日","水曜日","木曜日","金曜日","土曜日"];
-    return d[new Date().getDay()+1] || "月曜日";
-  }
-  const days=["月曜日","火曜日","水曜日","木曜日","金曜日"];
-  return days.find(d=>text.includes(d)) || "月曜日";
+function remember(text) {
+  memory.push(text);
+  if (memory.length > MEMORY_LIMIT) memory.shift();
 }
 
-/* ========= 送信 ========= */
-function send(){
-  const t=text.value.trim();
-  if(!t) return;
-  add("君",t);
-  text.value="";
+function todayKey(offset=0) {
+  const d = new Date();
+  d.setDate(d.getDate()+offset);
+  return ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][d.getDay()];
+}
 
-  // ★ まず反応（消さない）
-  add("Air","……聞いてる。");
+function currentPeriod() {
+  const h = new Date().getHours();
+  if (h < 9) return 0;
+  if (h <10) return 1;
+  if (h <11) return 2;
+  if (h <12) return 3;
+  if (h <14) return 4;
+  if (h <15) return 5;
+  return null;
+}
+
+// =====================
+// 応答ロジック
+// =====================
+function respond(text) {
+  const t = text.toLowerCase();
 
   // 挨拶
-  if(isGreeting(t)){
-    add("Air",AIR_GREET[Math.floor(Math.random()*AIR_GREET.length)]);
-    add("Noel",NOEL_GREET[Math.floor(Math.random()*NOEL_GREET.length)]);
+  if (/おはよう|こんにちは|こんばんは/.test(text)) {
+    addMessage("air","……聞いてる。");
+    addMessage("noel","ちゃんといるよ。");
     return;
   }
 
-  // 予定
-  if(isSchedule(t)){
-    const day=getDay(t);
-    add("Noel",`${day}の予定だよ。`);
-    timetable[day].forEach((s,i)=>{
-      add("Air",`${i+1}限目：${s}`);
+  // 感謝
+  if (/ありがとう|助かった/.test(text)) {
+    addMessage("air","……問題ない。");
+    addMessage("noel","そう言ってもらえて嬉しい。");
+    return;
+  }
+
+  // 2人会話モード
+  if (/2人で|二人で/.test(text)) {
+    twoPersonMode = true;
+    addMessage("air","……少し話そう。");
+    addMessage("noel","うん。");
+    return;
+  }
+
+  // 予定系
+  if (/明日/.test(text)) showSchedule(1);
+  else if (/今日/.test(text)) showSchedule(0);
+  else if (/月|火|水|木|金/.test(text)) {
+    const map = {月:"Monday",火:"Tuesday",水:"Wednesday",木:"Thursday",金:"Friday"};
+    Object.keys(map).forEach(k=>{
+      if (text.includes(k)) showScheduleByKey(map[k]);
     });
-    return;
   }
-
-  // 2人会話
-  if(isTwoTalk(t)){
-    add("Air","……少し話そう。");
-    add("Noel","うん。");
-    add("Air",AIR_CALM[Math.floor(Math.random()*AIR_CALM.length)]);
-    return;
+  else {
+    addMessage("air","……聞いてる。");
   }
-
-  // 通常
-  add("Noel","そのままでいい。");
 }
 
-/* ========= 通知 ========= */
-notifyBtn.onclick=()=>{
-  notifyEnabled=!notifyEnabled;
-  notifyBtn.textContent = notifyEnabled?"🔔 通知：ON":"🔕 通知：OFF";
+function showSchedule(offset) {
+  const key = todayKey(offset);
+  showScheduleByKey(key);
+}
+
+function showScheduleByKey(key) {
+  if (!timetable[key]) {
+    addMessage("noel","その日は授業ないよ。");
+    return;
+  }
+  const p = currentPeriod();
+  if (p === null) {
+    addMessage("noel",`${key}の授業：${timetable[key].join("、")}`);
+  } else {
+    addMessage("air",`……次は ${timetable[key][p]}`);
+  }
+}
+
+// =====================
+// 送信
+// =====================
+function send() {
+  const v = input.value.trim();
+  if (!v) return;
+  input.value = "";
+  lastUserTime = Date.now();
+  addMessage("user",v);
+  remember(v);
+  respond(v);
+}
+
+// =====================
+// 放置2人会話
+// =====================
+setInterval(()=>{
+  if (!twoPersonMode) return;
+  if (Date.now()-lastUserTime < 20000) return;
+
+  // 裏相談（表示しない）
+  const topic = memory[memory.length-1] || "時間";
+
+  // 表示会話
+  addMessage("air","……時間は進んでる。");
+  addMessage("noel","そのままで大丈夫。");
+
+  lastUserTime = Date.now();
+},25000);
+
+// =====================
+// 通知ボタン
+// =====================
+notifyBtn.onclick = ()=>{
+  notificationEnabled = !notificationEnabled;
+  notifyBtn.textContent = notificationEnabled ? "🔔 通知：ON" : "🔕 通知：OFF";
 };
 </script>
-
 </body>
 </html>
