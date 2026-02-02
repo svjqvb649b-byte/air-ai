@@ -7,7 +7,6 @@
 <title>Air & Noel</title>
 
 <style>
-/* ===== 基本設定（文字が小さくならない対策） ===== */
 html, body {
   margin: 0;
   padding: 0;
@@ -17,14 +16,19 @@ html, body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 16px;
   line-height: 1.7;
-  -webkit-text-size-adjust: 100%;
 }
 
-/* ===== 上部 ===== */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 #top {
   display: flex;
   justify-content: center;
   padding: 10px;
+  flex-shrink: 0;
 }
 
 #notifyBtn {
@@ -33,38 +37,22 @@ html, body {
   border: none;
   border-radius: 20px;
   padding: 6px 14px;
-  font-size: 14px;
 }
 
-/* ===== チャット ===== */
 #chat {
+  flex: 1;
   padding: 16px;
-  height: calc(100vh - 120px);
   overflow-y: auto;
-  font-size: 16px;
 }
 
-.you, .air, .noel {
-  margin: 10px 0;
-  font-size: 16px;
-}
+.you { color: #38bdf8; margin: 8px 0; }
+.air { color: #e5e7eb; margin: 8px 0; }
+.noel { color: #a5b4fc; margin: 8px 0; }
 
-.you {
-  color: #38bdf8;
-}
-
-.air {
-  color: #e5e7eb;
-}
-
-.noel {
-  color: #a5b4fc;
-}
-
-/* ===== 入力欄 ===== */
 #inputArea {
   display: flex;
   padding: 10px;
+  flex-shrink: 0;
 }
 
 input {
@@ -88,105 +76,76 @@ button {
 </head>
 
 <body>
+<div id="app">
 
-<div id="top">
-  <button id="notifyBtn">🔔 通知：ON</button>
-</div>
+  <div id="top">
+    <button id="notifyBtn">🔔 通知：ON</button>
+  </div>
 
-<div id="chat"></div>
+  <div id="chat"></div>
 
-<div id="inputArea">
-  <input id="text" placeholder="ここに話しかけて" />
-  <button onclick="send()">送る</button>
+  <div id="inputArea">
+    <input id="text" placeholder="ここに話しかけて" />
+    <button onclick="send()">送る</button>
+  </div>
+
 </div>
 
 <script>
-/* ===== 状態 ===== */
 let notifyOn = true;
 let lastTalk = Date.now();
-let autoTalkTimer;
+let duoMode = false;
+let duoTimer = null;
 
-/* ===== 時間割 ===== */
-const timetable = {
-  月: ["数学Ⅰ","英語コミュⅠ","体育","言語文化","家庭基礎","音楽Ⅰ"],
-  火: ["英語コミュⅠ","現代の国語","数学Ⅰ","保健","公共","総合"],
-  水: ["英語コミュⅠ","科学と人間生活","言語文化","歴史総合","体育","LHR"],
-  木: ["音楽Ⅰ","科学と人間生活","情報Ⅰ","家庭基礎","体育","数学Ⅰ"],
-  金: ["公共","数学Ⅰ","英語コミュⅠ","歴史総合","現代の国語","情報Ⅰ"]
-};
+/* ===== 会話データ ===== */
+const airLines = [
+  "……落ち着いてる。",
+  "……時間は流れてる。",
+  "……無理はしてない。",
+  "……静かでいい。"
+];
 
-const periods = [
-  {name:"1限", start:850, end:940},
-  {name:"2限", start:950, end:1040},
-  {name:"3限", start:1050, end:1140},
-  {name:"4限", start:1250, end:1340},
-  {name:"5限", start:1425, end:1515},
-  {name:"6限", start:1515, end:1600}
+const noelLines = [
+  "うん。",
+  "ちゃんと進んでるよ。",
+  "今はこれでいいと思う。",
+  "ここにいるよ。"
 ];
 
 /* ===== 表示 ===== */
 function add(who, text) {
   const div = document.createElement("div");
   div.className = who;
-  div.textContent = `${who === "you" ? "君" : who === "air" ? "Air" : "Noel"} : ${text}`;
+  div.textContent =
+    (who === "you" ? "君" : who === "air" ? "Air" : "Noel") + " : " + text;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 }
 
-/* ===== 判定 ===== */
-function nowPeriod() {
-  const d = new Date();
-  const t = d.getHours()*100 + d.getMinutes();
-  return periods.find(p => t >= p.start && t <= p.end);
-}
-
-function weekday() {
-  return ["日","月","火","水","木","金","土"][new Date().getDay()];
-}
-
-/* ===== メイン処理 ===== */
+/* ===== 送信 ===== */
 function send() {
   const v = text.value.trim();
   if (!v) return;
   text.value = "";
   add("you", v);
-  lastTalk = Date.now();
-  clearTimeout(autoTalkTimer);
 
-  /* 挨拶 */
+  lastTalk = Date.now();
+  stopDuo();
+
+  if (/2人で話|雑談/.test(v)) {
+    startDuo();
+    return;
+  }
+
   if (/おはよう|こんにちは|こんばんは/.test(v)) {
     add("air","……聞いてる。");
     add("noel","ちゃんと届いてるよ。");
     return;
   }
 
-  /* 感謝 */
   if (/ありがとう/.test(v)) {
     add("air","……問題ない。");
-    add("noel","そう言ってくれて嬉しい。");
-    return;
-  }
-
-  /* 2人会話 */
-  if (/2人で話/.test(v)) {
-    duoTalk();
-    return;
-  }
-
-  /* 次は何限 */
-  if (/次.*何限/.test(v)) {
-    const p = nowPeriod();
-    add("air", p ? `……今は${p.name}。` : "……今は授業時間外。");
-    return;
-  }
-
-  /* 予定 */
-  if (/明日|今日|曜/.test(v)) {
-    const day = /明日/.test(v)
-      ? ["日","月","火","水","木","金","土"][(new Date().getDay()+1)%7]
-      : weekday();
-    const list = timetable[day];
-    add("noel", list ? `${day}曜日は ${list.join("、")}` : "予定は入ってないみたい。");
+    add("noel","どういたしまして。");
     return;
   }
 
@@ -194,24 +153,32 @@ function send() {
 }
 
 /* ===== 2人会話 ===== */
-function duoTalk() {
-  const a = [
-    "……落ち着いてる。",
-    "……時間は進んでる。"
-  ];
-  const n = [
-    "うん。",
-    "そのままでいい。"
-  ];
-  add("air", a[Math.floor(Math.random()*a.length)]);
-  add("noel", n[Math.floor(Math.random()*n.length)]);
+function startDuo() {
+  if (duoMode) return;
+  duoMode = true;
+  add("air","……少し話そう。");
+
+  let turn = 0;
+  duoTimer = setInterval(() => {
+    if (!duoMode) return;
+    if (turn % 2 === 0) {
+      add("air", airLines[Math.floor(Math.random()*airLines.length)]);
+    } else {
+      add("noel", noelLines[Math.floor(Math.random()*noelLines.length)]);
+    }
+    turn++;
+  }, 4000);
 }
 
-/* ===== 自動会話 ===== */
+function stopDuo() {
+  duoMode = false;
+  if (duoTimer) clearInterval(duoTimer);
+}
+
+/* ===== 放置検知 ===== */
 setInterval(() => {
-  if (Date.now() - lastTalk > 30000) {
-    duoTalk();
-    lastTalk = Date.now();
+  if (Date.now() - lastTalk > 60000 && !duoMode) {
+    startDuo();
   }
 }, 5000);
 
@@ -221,7 +188,7 @@ notifyBtn.onclick = () => {
   notifyBtn.textContent = notifyOn ? "🔔 通知：ON" : "🔕 通知：OFF";
 };
 
-/* 初期表示 */
+/* ===== 初期 ===== */
 add("air","……ここにいる。");
 add("noel","いつでも話しかけて。");
 </script>
