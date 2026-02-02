@@ -1,43 +1,54 @@
-/* 共通：画面いっぱい使う */
-html, body {
+body {
   margin: 0;
-  padding: 0;
-  height: 100%;
-  font-size: 16px;
-  -webkit-text-size-adjust: 100%;
+  background: #0b132b;
+  color: white;
+  font-family: system-ui, sans-serif;
+  font-size: 18px;
 }
 
-/* 全体コンテナ */
-.app {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
-
-/* チャット表示エリア */
-.chat-area {
-  flex: 1;
-  overflow-y: auto;
-  line-height: 1.6;
-}
-
-/* 入力欄 */
-.input-area {
-  display: flex;
+header {
   padding: 10px;
 }
 
-/* ===== 縦向き専用 ===== */
-@media (orientation: portrait) {
-  .app {
-    padding: 10px;
-  }
+#chatArea {
+  padding: 15px;
+  height: 65vh;
+  overflow-y: auto;
+}
 
-  .chat-area {
-    font-size: 1rem;
-  }
+.message {
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
 
-  .input-area input {
-    font-size: 1rem;
-  }
+.air { color: #cfd9ff; }
+.noel { color: #b9e0ff; }
+.you { color: #6dd6ff; }
+
+footer {
+  display: flex;
+  padding: 10px;
+  gap: 5px;
+}
+
+input {
+  flex: 1;
+  font-size: 18px;
+}
+
+button {
+  font-size: 18px;
+}
+
+#characters {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+}
+
+#characters img {
+  height: 220px;
 }
