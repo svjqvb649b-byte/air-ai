@@ -2,27 +2,25 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
+  <title>Air & Noel Assistant</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Air AI</title>
+  <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <h1>Air AI</h1>
+  <div id="app">
+    <div id="characters">
+      <img id="air" src="images/air/air_normal.png" />
+      <img id="noel" src="images/noel/noel_normal.jpg" />
+    </div>
 
-  <!-- キャラ表示 -->
-  <img id="characterImage" src="air/air_normal.jpg" alt="character" />
+    <div id="log"></div>
 
-  <!-- キャラ切り替え -->
-  <div>
-    <button onclick="setCharacter('air')">エア</button>
-    <button onclick="setCharacter('noel')">ノエル</button>
-  </div>
-
-  <!-- 音声操作 -->
-  <div>
-    <button id="startBtn">🎤 開始</button>
-    <button id="stopBtn">⏹ 停止</button>
+    <div id="controls">
+      <button id="micBtn">🎤 話す</button>
+      <button id="switchBtn">🔁 切替</button>
+    </div>
   </div>
 
   <script src="app.js"></script>
