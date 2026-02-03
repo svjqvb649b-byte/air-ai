@@ -18,7 +18,6 @@ function addLog(text) {
   log.scrollTop = log.scrollHeight;
 }
 
-// ── 会話ロジック ──
 function respond(userText) {
   shortMemory.push(userText);
   if (shortMemory.length > 5) shortMemory.shift();
@@ -31,12 +30,10 @@ function respond(userText) {
     if (/おはよう|こんにちは|こんばんは/.test(userText)) {
       addLog("air：おはよう。今日も無理はしないように。");
       addLog("noel：おはよう！今日も一緒にがんばろ！");
-    }
-    else if (/時間割|授業/.test(userText)) {
+    } else if (/時間割|授業/.test(userText)) {
       addLog("air：今日の授業、曜日と教科を確認しよう。");
       addLog("noel：メモしておくと安心だね。");
-    }
-    else {
+    } else {
       addLog("noel：うんうん、そうだね。");
       addLog("air：……なるほど。悪くない判断だと思う。");
     }
@@ -45,7 +42,6 @@ function respond(userText) {
   }, 800);
 }
 
-// ── 送信 ──
 sendBtn.onclick = () => {
   if (!input.value) return;
   addLog("you：" + input.value);
@@ -53,7 +49,6 @@ sendBtn.onclick = () => {
   input.value = "";
 };
 
-// ── 音声入力 ──
 talkBtn.onclick = () => {
   const rec = new webkitSpeechRecognition();
   rec.lang = "ja-JP";
@@ -68,7 +63,6 @@ talkBtn.onclick = () => {
   rec.start();
 };
 
-// ── 放置時：2人だけの雑談 ──
 function startAutoChat() {
   autoChatTimer = setInterval(() => {
     addLog("noel：ちょっと静かだね。");
