@@ -1,8 +1,8 @@
 body {
-  background: #0b1020;
-  color: #fff;
-  font-family: system-ui, sans-serif;
   margin: 0;
+  background: #0b1220;
+  color: #fff;
+  font-family: system-ui;
 }
 
 #app {
@@ -11,10 +11,9 @@ body {
   padding: 20px;
 }
 
-#characters {
+.characters {
   display: flex;
-  justify-content: space-around;
-  margin-bottom: 15px;
+  justify-content: space-between;
 }
 
 .char img {
@@ -28,30 +27,31 @@ body {
 }
 
 #log {
-  background: #141a33;
-  height: 200px;
-  padding: 10px;
+  background: #111a2e;
+  margin: 20px 0;
+  padding: 15px;
+  height: 180px;
   overflow-y: auto;
   border-radius: 10px;
-  margin-bottom: 10px;
+  font-size: 14px;
 }
 
-#controls {
+.controls {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
-#textInput {
+.controls input {
   flex: 1;
   padding: 10px;
-  border-radius: 8px;
+  border-radius: 6px;
   border: none;
 }
 
-button {
+.controls button {
   padding: 10px 14px;
-  border-radius: 8px;
+  border-radius: 6px;
   border: none;
-  background: #5a6cff;
+  background: #5865f2;
   color: white;
 }
