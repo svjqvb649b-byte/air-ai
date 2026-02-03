@@ -1,54 +1,87 @@
-// ===============================
-// 既存の音声・PWA処理（仮）
-// ===============================
-const startBtn = document.getElementById("start");
-const stopBtn = document.getElementById("stop");
+// ===== キャラ管理 =====
+let currentCharacter = 'air';
+let currentExpression = 'normal';
 
-if (startBtn) {
-  startBtn.addEventListener("click", () => {
-    console.log("音声認識スタート（既存処理）");
-  });
-}
+const characterImage = document.getElementById('characterImage');
 
-if (stopBtn) {
-  stopBtn.addEventListener("click", () => {
-    console.log("音声認識ストップ（既存処理）");
-  });
-}
+function updateCharacterImage() {
+  let path = '';
 
-// ===============================
-// キャラ画像管理（追加機能）
-// ===============================
-let currentCharacter = "air";
-let currentExpression = "normal";
-
-const characterImages = {
-  air: {
-    normal: "air/air_normal.jpg",
-    smile: "air/air_smile.jpg",
-    thinking: "air/air_thinking.jpg"
-  },
-  noel: {
-    normal: "images/noel/noel_normal.jpg",
-    smile: "images/noel/noel_smile.jpg",
-    thinking: "images/noel/noel_thinking.jpg"
+  if (currentCharacter === 'air') {
+    path = `air/air_${currentExpression}.jpg`;
+  } else if (currentCharacter === 'noel') {
+    path = `images/noel/noel_${currentExpression}.jpg`;
   }
-};
 
-// キャラ切り替え
+  characterImage.src = path;
+}
+
 function setCharacter(character) {
   currentCharacter = character;
+  currentExpression = 'normal';
   updateCharacterImage();
 }
 
-// 表情切り替え
 function setExpression(expression) {
   currentExpression = expression;
   updateCharacterImage();
 }
 
-// 画像更新
-function updateCharacterImage() {
-  const img = document.getElementById("character-image");
-  img.src = characterImages[currentCharacter][currentExpression];
+// ===== 音声認識 =====
+const SpeechRecognition =
+  window.SpeechRecognition || window.webkitSpeechRecognition;
+
+const recognition = new SpeechRecognition();
+recognition.lang = 'ja-JP';
+recognition.continuous = true;
+recognition.interimResults = false;
+
+// 🎧 音声認識開始 → thinking
+recognition.onstart = () => {
+  setExpression('thinking');
+};
+
+// 🎧 認識結果
+recognition.onresult = (event) => {
+  const text = event.results[event.results.length - 1][0].transcript;
+  speak(text);
+};
+
+// 🎧 音声認識終了 → normal（発話が無い場合）
+recognition.onend = () => {
+  if (!speechSynthesis.speaking) {
+    setExpression('normal');
+  }
+};
+
+// ===== 音声合成 =====
+function speak(text) {
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'ja-JP';
+
+  // 🔊 発話開始 → smile
+  utterance.onstart = () => {
+    setExpression('smile');
+  };
+
+  // 🔊 発話終了 → normal
+  utterance.onend = () => {
+    setExpression('normal');
+  };
+
+  speechSynthesis.speak(utterance);
 }
+
+// ===== ボタン =====
+document.getElementById('startBtn').addEventListener('click', () => {
+  recognition.start();
+});
+
+document.getElementById('stopBtn').addEventListener('click', () => {
+  recognition.stop();
+  speechSynthesis.cancel();
+  setExpression('normal');
+});
+
+// 初期表示
+updateCharacterImage();
