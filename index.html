@@ -3,40 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>air-ai</title>
-
-  <link rel="manifest" href="manifest.json" />
+  <title>Air AI</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <h1>Air - voice assistant</h1>
+  <h1>Air AI</h1>
 
-  <!-- ===== キャラ画像 ===== -->
-  <img
-    id="character-image"
-    src="air/air_normal.jpg"
-    alt="character"
-    style="width:240px; display:block; margin-bottom:12px;"
-  />
+  <!-- キャラ表示 -->
+  <img id="characterImage" src="air/air_normal.jpg" alt="character" />
 
-  <!-- ===== キャラ切り替え ===== -->
-  <div id="character-switch">
+  <!-- キャラ切り替え -->
+  <div>
     <button onclick="setCharacter('air')">エア</button>
     <button onclick="setCharacter('noel')">ノエル</button>
   </div>
 
-  <!-- ===== 表情切り替え ===== -->
-  <div style="margin-top:8px;">
-    <button onclick="setExpression('normal')">通常</button>
-    <button onclick="setExpression('smile')">笑顔</button>
-    <button onclick="setExpression('thinking')">考え中</button>
-  </div>
-
-  <!-- ===== 既存機能（例：音声ボタン） ===== -->
-  <div style="margin-top:16px;">
-    <button id="start">🎤 話す</button>
-    <button id="stop">⏹ 停止</button>
+  <!-- 音声操作 -->
+  <div>
+    <button id="startBtn">🎤 開始</button>
+    <button id="stopBtn">⏹ 停止</button>
   </div>
 
   <script src="app.js"></script>
