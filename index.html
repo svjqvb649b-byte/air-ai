@@ -3,26 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <title>Air & Noel Assistant</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <div id="app">
-    <div id="characters">
-      <img id="air" src="images/air/air_normal.png" />
-      <img id="noel" src="images/noel/noel_normal.jpg" />
+<div id="app">
+  <div id="characters">
+    <div class="char">
+      <img id="airImg" src="images/air/air_normal.png">
+      <div class="name">エア</div>
     </div>
-
-    <div id="log"></div>
-
-    <div id="controls">
-      <button id="micBtn">🎤 話す</button>
-      <button id="switchBtn">🔁 切替</button>
+    <div class="char">
+      <img id="noelImg" src="images/noel/noel_normal.jpg">
+      <div class="name">ノエル</div>
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <div id="log"></div>
+
+  <div id="controls">
+    <input id="textInput" placeholder="文字で話しかける…" />
+    <button id="sendBtn">送信</button>
+    <button id="micBtn">🎤 話す</button>
+    <button id="switchBtn">🔁 切替</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>
