@@ -8,25 +8,36 @@
 </head>
 <body>
 
-<header>
-  <button id="notifyBtn">🔔 通知: OFF</button>
-</header>
+  <!-- 通知 -->
+  <div id="topBar">
+    <button id="notifyBtn">🔔 通知: OFF</button>
+  </div>
 
-<main>
-  <div id="chat"></div>
-</main>
+  <!-- 会話表示 -->
+  <div id="chat">
+    <div class="line air">Air : ……ここにいる。</div>
+    <div class="line noel">Noel : いつでも話しかけて。</div>
+  </div>
 
-<footer>
-  <input id="input" placeholder="ここに話しかけて" />
-  <button id="send">送る</button>
-</footer>
+  <!-- 立ち絵エリア -->
+  <div id="characters">
+    <div class="chara">
+      <img id="airImg" src="images/air/air_normal.png" alt="Air">
+      <div class="name">Air</div>
+    </div>
 
-<!-- 立ち絵エリア -->
-<div id="characters">
-  <img id="airImg" src="air.png" alt="Air">
-  <img id="noelImg" src="noel.png" alt="Noel">
-</div>
+    <div class="chara">
+      <img id="noelImg" src="images/noel/noel_normal.png" alt="Noel">
+      <div class="name">Noel</div>
+    </div>
+  </div>
 
-<script src="app.js"></script>
+  <!-- 入力 -->
+  <div id="inputArea">
+    <input id="textInput" placeholder="ここに話しかけて" />
+    <button id="sendBtn">送る</button>
+  </div>
+
+  <script src="app.js"></script>
 </body>
 </html>
