@@ -3,39 +3,40 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Air & Noel</title>
+  <title>air-ai</title>
+
+  <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <!-- 通知 -->
-  <div id="topBar">
-    <button id="notifyBtn">🔔 通知: OFF</button>
+  <h1>Air - voice assistant</h1>
+
+  <!-- ===== キャラ画像 ===== -->
+  <img
+    id="character-image"
+    src="air/air_normal.jpg"
+    alt="character"
+    style="width:240px; display:block; margin-bottom:12px;"
+  />
+
+  <!-- ===== キャラ切り替え ===== -->
+  <div id="character-switch">
+    <button onclick="setCharacter('air')">エア</button>
+    <button onclick="setCharacter('noel')">ノエル</button>
   </div>
 
-  <!-- 会話表示 -->
-  <div id="chat">
-    <div class="line air">Air : ……ここにいる。</div>
-    <div class="line noel">Noel : いつでも話しかけて。</div>
+  <!-- ===== 表情切り替え ===== -->
+  <div style="margin-top:8px;">
+    <button onclick="setExpression('normal')">通常</button>
+    <button onclick="setExpression('smile')">笑顔</button>
+    <button onclick="setExpression('thinking')">考え中</button>
   </div>
 
-  <!-- 立ち絵エリア -->
-  <div id="characters">
-    <div class="chara">
-      <img id="airImg" src="images/air/air_normal.png" alt="Air">
-      <div class="name">Air</div>
-    </div>
-
-    <div class="chara">
-      <img id="noelImg" src="images/noel/noel_normal.png" alt="Noel">
-      <div class="name">Noel</div>
-    </div>
-  </div>
-
-  <!-- 入力 -->
-  <div id="inputArea">
-    <input id="textInput" placeholder="ここに話しかけて" />
-    <button id="sendBtn">送る</button>
+  <!-- ===== 既存機能（例：音声ボタン） ===== -->
+  <div style="margin-top:16px;">
+    <button id="start">🎤 話す</button>
+    <button id="stop">⏹ 停止</button>
   </div>
 
   <script src="app.js"></script>
