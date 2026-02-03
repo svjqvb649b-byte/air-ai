@@ -1,79 +1,79 @@
-let current = "noel";
-let memory = [];
-let idleTimer = null;
-
-const airImage = document.getElementById("airImage");
-const noelImage = document.getElementById("noelImage");
 const log = document.getElementById("log");
 const input = document.getElementById("textInput");
+const sendBtn = document.getElementById("sendBtn");
+const talkBtn = document.getElementById("talkBtn");
+const airImage = document.getElementById("airImage");
+
+const airImages = {
+  normal: "air/air_normal.jpg",
+  smile: "air/air_smile.jpg",
+  thinking: "air/air_thinking.jpg"
+};
+
+let shortMemory = [];
+let autoChatTimer = null;
 
 function addLog(text) {
   log.innerHTML += text + "<br>";
   log.scrollTop = log.scrollHeight;
 }
 
-function setImage(character, state) {
-  const img = character === "air" ? airImage : noelImage;
-  img.src = `images/${character}/${character}_${state}.jpg`;
-}
+// ── 会話ロジック ──
+function respond(userText) {
+  shortMemory.push(userText);
+  if (shortMemory.length > 5) shortMemory.shift();
 
-function reply(from, text) {
-  addLog(`${from}：${text}`);
-}
+  airImage.src = airImages.thinking;
 
-function airTalk(msg = "") {
-  setImage("air", "thinking");
   setTimeout(() => {
-    setImage("air", "smile");
-    reply("air", "……なるほど。悪くない判断だと思う。");
-    setImage("air", "normal");
+    airImage.src = airImages.smile;
+
+    if (/おはよう|こんにちは|こんばんは/.test(userText)) {
+      addLog("air：おはよう。今日も無理はしないように。");
+      addLog("noel：おはよう！今日も一緒にがんばろ！");
+    }
+    else if (/時間割|授業/.test(userText)) {
+      addLog("air：今日の授業、曜日と教科を確認しよう。");
+      addLog("noel：メモしておくと安心だね。");
+    }
+    else {
+      addLog("noel：うんうん、そうだね。");
+      addLog("air：……なるほど。悪くない判断だと思う。");
+    }
+
+    airImage.src = airImages.normal;
   }, 800);
 }
 
-function noelTalk(msg = "") {
-  setImage("noel", "thinking");
-  setTimeout(() => {
-    setImage("noel", "smile");
-    reply("noel", "うんうん、そうだね。");
-    setImage("noel", "normal");
-  }, 800);
-}
-
-function duoChat() {
-  airTalk();
-  setTimeout(() => noelTalk(), 1200);
-}
-
-function resetIdle() {
-  clearTimeout(idleTimer);
-  idleTimer = setTimeout(() => {
-    addLog("（エアとノエルが話し始めた）");
-    duoChat();
-  }, 10000);
-}
-
-document.getElementById("sendBtn").onclick = () => {
-  const text = input.value.trim();
-  if (!text) return;
-  addLog(`あなた：${text}`);
-  memory.push(text);
+// ── 送信 ──
+sendBtn.onclick = () => {
+  if (!input.value) return;
+  addLog("you：" + input.value);
+  respond(input.value);
   input.value = "";
-
-  if (current === "air") airTalk(text);
-  else noelTalk(text);
-
-  resetIdle();
 };
 
-document.getElementById("switchBtn").onclick = () => {
-  current = current === "air" ? "noel" : "air";
-  addLog(`${current}に切り替えたよ`);
+// ── 音声入力 ──
+talkBtn.onclick = () => {
+  const rec = new webkitSpeechRecognition();
+  rec.lang = "ja-JP";
+  airImage.src = airImages.thinking;
+
+  rec.onresult = e => {
+    const text = e.results[0][0].transcript;
+    addLog("you：" + text);
+    respond(text);
+  };
+
+  rec.start();
 };
 
-document.getElementById("talkBtn").onclick = () => {
-  if (current === "air") airTalk();
-  else noelTalk();
-  resetIdle();
-};
+// ── 放置時：2人だけの雑談 ──
+function startAutoChat() {
+  autoChatTimer = setInterval(() => {
+    addLog("noel：ちょっと静かだね。");
+    addLog("air：……考える時間も必要だ。");
+  }, 30000);
+}
 
-resetIdle();
+startAutoChat();
