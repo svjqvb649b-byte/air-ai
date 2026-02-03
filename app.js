@@ -1,61 +1,54 @@
-const chat = document.getElementById("chat");
-const input = document.getElementById("textInput");
-const sendBtn = document.getElementById("sendBtn");
-const notifyBtn = document.getElementById("notifyBtn");
+// ===============================
+// 既存の音声・PWA処理（仮）
+// ===============================
+const startBtn = document.getElementById("start");
+const stopBtn = document.getElementById("stop");
 
-const airImg = document.getElementById("airImg");
-const noelImg = document.getElementById("noelImg");
+if (startBtn) {
+  startBtn.addEventListener("click", () => {
+    console.log("音声認識スタート（既存処理）");
+  });
+}
 
-let notifyOn = false;
-let idleTimer;
+if (stopBtn) {
+  stopBtn.addEventListener("click", () => {
+    console.log("音声認識ストップ（既存処理）");
+  });
+}
+
+// ===============================
+// キャラ画像管理（追加機能）
+// ===============================
+let currentCharacter = "air";
+let currentExpression = "normal";
+
+const characterImages = {
+  air: {
+    normal: "air/air_normal.jpg",
+    smile: "air/air_smile.jpg",
+    thinking: "air/air_thinking.jpg"
+  },
+  noel: {
+    normal: "images/noel/noel_normal.jpg",
+    smile: "images/noel/noel_smile.jpg",
+    thinking: "images/noel/noel_thinking.jpg"
+  }
+};
+
+// キャラ切り替え
+function setCharacter(character) {
+  currentCharacter = character;
+  updateCharacterImage();
+}
 
 // 表情切り替え
-function setAir(face) {
-  airImg.src = `images/air/air_${face}.png`;
-}
-function setNoel(face) {
-  noelImg.src = `images/noel/noel_${face}.png`;
+function setExpression(expression) {
+  currentExpression = expression;
+  updateCharacterImage();
 }
 
-// 会話追加
-function addLine(who, text) {
-  const div = document.createElement("div");
-  div.className = "line " + who;
-  div.textContent = `${who === "air" ? "Air" : "Noel"} : ${text}`;
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
+// 画像更新
+function updateCharacterImage() {
+  const img = document.getElementById("character-image");
+  img.src = characterImages[currentCharacter][currentExpression];
 }
-
-// 送信
-sendBtn.onclick = () => {
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = "";
-
-  addLine("air", "……聞いてる。");
-  setAir("think");
-  setNoel("calm");
-
-  resetIdle();
-};
-
-// 通知ON/OFF
-notifyBtn.onclick = () => {
-  notifyOn = !notifyOn;
-  notifyBtn.textContent = `🔔 通知: ${notifyOn ? "ON" : "OFF"}`;
-};
-
-// 放置会話
-function startIdleTalk() {
-  addLine("noel", "……静かだね。");
-  addLine("air", "……時間は流れてる。");
-  setAir("soft");
-  setNoel("smile");
-}
-
-function resetIdle() {
-  clearTimeout(idleTimer);
-  idleTimer = setTimeout(startIdleTalk, 15000);
-}
-
-resetIdle();
