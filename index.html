@@ -1,35 +1,37 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Air & Noel</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Air & Noel</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="container">
 
-<div id="app">
-  <div class="characters">
-    <div class="char">
-      <img id="airImg" src="images/air/air_normal.jpg">
-      <div class="name">エア</div>
+    <div class="characters">
+      <div class="character">
+        <img id="airImage" src="images/air/air_normal.jpg" alt="エア">
+        <div class="name">エア</div>
+      </div>
+
+      <div class="character">
+        <img id="noelImage" src="images/noel/noel_normal.jpg" alt="ノエル">
+        <div class="name">ノエル</div>
+      </div>
     </div>
-    <div class="char">
-      <img id="noelImg" src="images/noel/noel_normal.jpg">
-      <div class="name">ノエル</div>
+
+    <div id="log" class="log"></div>
+
+    <div class="controls">
+      <input id="textInput" type="text" placeholder="文字で話しかける…" />
+      <button id="sendBtn">送信</button>
+      <button id="talkBtn">話す</button>
+      <button id="switchBtn">切替</button>
     </div>
+
   </div>
 
-  <div id="log"></div>
-
-  <div class="controls">
-    <input id="textInput" placeholder="文字で話しかける…">
-    <button id="sendBtn">送信</button>
-    <button id="micBtn">🎤 話す</button>
-    <button id="switchBtn">🔁 切替</button>
-  </div>
-</div>
-
-<script src="app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
