@@ -1,89 +1,79 @@
-let current = "air";
+let current = "noel";
 let memory = [];
-let autoTalkTimer = null;
+let idleTimer = null;
 
-const airImg = document.getElementById("airImg");
-const noelImg = document.getElementById("noelImg");
+const airImage = document.getElementById("airImage");
+const noelImage = document.getElementById("noelImage");
 const log = document.getElementById("log");
 const input = document.getElementById("textInput");
 
-const faces = {
-  air: {
-    normal: "images/air/air_normal.jpg",
-    smile: "images/air/air_smile.jpg",
-    thinking: "images/air/air_thinking.jpg"
-  },
-  noel: {
-    normal: "images/noel/noel_normal.jpg",
-    smile: "images/noel/noel_smile.jpg",
-    thinking: "images/noel/noel_thinking.jpg"
-  }
-};
-
-function setFace(who, face) {
-  (who === "air" ? airImg : noelImg).src = faces[who][face];
-}
-
-function addLog(who, text) {
-  log.innerHTML += `<div>${who} : ${text}</div>`;
+function addLog(text) {
+  log.innerHTML += text + "<br>";
   log.scrollTop = log.scrollHeight;
 }
 
-function speak(who, text) {
-  setFace(who, "smile");
-  addLog(who, text);
-  setTimeout(() => setFace(who, "normal"), 1200);
+function setImage(character, state) {
+  const img = character === "air" ? airImage : noelImage;
+  img.src = `images/${character}/${character}_${state}.jpg`;
 }
 
-function respond(userText) {
-  memory.push(userText);
-  if (memory.length > 5) memory.shift();
+function reply(from, text) {
+  addLog(`${from}：${text}`);
+}
 
-  setFace(current, "thinking");
+function airTalk(msg = "") {
+  setImage("air", "thinking");
   setTimeout(() => {
-    const reply = current === "air"
-      ? "……それ、ちょっと面白いね"
-      : "ふふ、そういう考え方もあるよ";
-
-    speak(current, reply);
+    setImage("air", "smile");
+    reply("air", "……なるほど。悪くない判断だと思う。");
+    setImage("air", "normal");
   }, 800);
 }
 
+function noelTalk(msg = "") {
+  setImage("noel", "thinking");
+  setTimeout(() => {
+    setImage("noel", "smile");
+    reply("noel", "うんうん、そうだね。");
+    setImage("noel", "normal");
+  }, 800);
+}
+
+function duoChat() {
+  airTalk();
+  setTimeout(() => noelTalk(), 1200);
+}
+
+function resetIdle() {
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    addLog("（エアとノエルが話し始めた）");
+    duoChat();
+  }, 10000);
+}
+
 document.getElementById("sendBtn").onclick = () => {
-  if (!input.value) return;
-  addLog("あなた", input.value);
-  respond(input.value);
+  const text = input.value.trim();
+  if (!text) return;
+  addLog(`あなた：${text}`);
+  memory.push(text);
   input.value = "";
+
+  if (current === "air") airTalk(text);
+  else noelTalk(text);
+
+  resetIdle();
 };
 
 document.getElementById("switchBtn").onclick = () => {
   current = current === "air" ? "noel" : "air";
-  addLog("system", `${current}に切り替えたよ`);
+  addLog(`${current}に切り替えたよ`);
 };
 
-document.getElementById("micBtn").onclick = () => {
-  const rec = new webkitSpeechRecognition();
-  rec.lang = "ja-JP";
-  rec.start();
-
-  setFace(current, "thinking");
-
-  rec.onresult = e => {
-    const text = e.results[0][0].transcript;
-    addLog("あなた", text);
-    respond(text);
-  };
+document.getElementById("talkBtn").onclick = () => {
+  if (current === "air") airTalk();
+  else noelTalk();
+  resetIdle();
 };
 
-// 2人だけの自動雑談
-function autoTalk() {
-  const a = ["air", "noel"];
-  let i = 0;
-  autoTalkTimer = setInterval(() => {
-    const who = a[i % 2];
-    speak(who, who === "air" ? "……静かだね" : "でも、落ち着くね");
-    i++;
-  }, 7000);
-}
-
-autoTalk();
+resetIdle();
