@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Air & Noel</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div id="app">
+
+  <div class="characters">
+    <!-- エア（左） -->
+    <div class="character">
+      <img src="air/air_normal.jpg" alt="エア">
+      <div class="name">エア</div>
+    </div>
+
+    <!-- ノエル（右） -->
+    <div class="character">
+      <img src="images/noel.png" alt="ノエル">
+      <div class="name">ノエル</div>
+    </div>
+  </div>
+
+  <div id="log"></div>
+
+  <div class="inputArea">
+    <input id="textInput" type="text" placeholder="文字で話しかける…" />
+    <button onclick="send()">送信</button>
+  </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
