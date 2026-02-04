@@ -11,21 +11,26 @@ body {
   padding: 10px;
 }
 
+/* キャラ表示 */
 .characters {
   display: flex;
   justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
 }
 
 .character {
   text-align: center;
+  flex: 1;
 }
 
 .character img {
   width: 160px;
   height: 160px;
-  object-fit: cover;
+  object-fit: none;
+  image-rendering: pixelated;
   border-radius: 12px;
-  background: #000;
+  background: transparent;
 }
 
 .name {
@@ -33,6 +38,7 @@ body {
   font-size: 14px;
 }
 
+/* ログ */
 #log {
   margin: 12px 0;
   padding: 10px;
@@ -44,6 +50,7 @@ body {
   line-height: 1.5;
 }
 
+/* 入力 */
 .inputArea {
   display: flex;
   gap: 6px;
