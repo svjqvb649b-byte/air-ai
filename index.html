@@ -2,38 +2,37 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Air & Noel</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Noel & Air Chat</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div id="app">
 
-<div id="app">
+    <!-- キャラ表示 -->
+    <div class="characters">
+      <div class="character">
+        <img src="noel.png" alt="ノエル">
+        <div class="name">ノエル</div>
+      </div>
 
-  <div class="characters">
-    <!-- エア -->
-    <div class="character">
-      <img id="airImage" src="air/air_normal.jpg" alt="エア">
-      <div class="name">エア</div>
+      <div class="character">
+        <img src="air.png" alt="エア">
+        <div class="name">エア</div>
+      </div>
     </div>
 
-    <!-- ノエル -->
-    <div class="character">
-      <img id="noelImage" src="images/noel.png" alt="ノエル">
-      <div class="name">ノエル</div>
+    <!-- ログ -->
+    <div id="log"></div>
+
+    <!-- 入力 -->
+    <div class="inputArea">
+      <input id="textInput" type="text" placeholder="話しかける…" />
+      <button onclick="send()">送信</button>
     </div>
+
   </div>
 
-  <div id="log"></div>
-
-  <div class="inputArea">
-    <input id="textInput" type="text" placeholder="文字で話しかける…" />
-    <button id="sendBtn">送信</button>
-    <button id="talkBtn">話す</button>
-  </div>
-
-</div>
-
-<script src="app.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
