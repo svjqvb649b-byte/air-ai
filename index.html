@@ -7,32 +7,32 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div id="app">
 
-<div id="app">
+    <div class="characters">
+      <!-- エア -->
+      <div class="character">
+        <img id="airImage" src="air/air_normal.jpg" alt="エア">
+        <div class="name">エア</div>
+      </div>
 
-  <div class="characters">
-    <!-- エア（左） -->
-    <div class="character">
-      <img src="air/air_normal.jpg" alt="エア">
-      <div class="name">エア</div>
+      <!-- ノエル -->
+      <div class="character">
+        <img id="noelImage" src="images/noel/noel_normal.jpg" alt="ノエル">
+        <div class="name">ノエル</div>
+      </div>
     </div>
 
-    <!-- ノエル（右） -->
-    <div class="character">
-      <img src="images/noel.png" alt="ノエル">
-      <div class="name">ノエル</div>
+    <div id="log"></div>
+
+    <div class="inputArea">
+      <input id="textInput" type="text" placeholder="文字で話しかける…" />
+      <button onclick="send()">送信</button>
+      <button>話す</button>
     </div>
+
   </div>
 
-  <div id="log"></div>
-
-  <div class="inputArea">
-    <input id="textInput" type="text" placeholder="文字で話しかける…" />
-    <button onclick="send()">送信</button>
-  </div>
-
-</div>
-
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
