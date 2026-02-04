@@ -2,7 +2,15 @@ const log = document.getElementById("log");
 const input = document.getElementById("textInput");
 
 function addLog(name, text) {
-  log.innerHTML += `<div><b>${name}:</b> ${text}</div>`;
+  const div = document.createElement("div");
+  div.classList.add("message");
+
+  if (name === "ノエル") div.classList.add("noel");
+  else if (name === "エア") div.classList.add("air");
+  else div.classList.add("you");
+
+  div.innerHTML = `<div class="name">${name}</div>${text}`;
+  log.appendChild(div);
   log.scrollTop = log.scrollHeight;
 }
 
@@ -17,7 +25,7 @@ function send() {
   }, 500);
 
   setTimeout(() => {
-    addLog("エア", "ふたり表示、いい感じだね。");
+    addLog("エア", "左右分割、いい感じだね。");
   }, 900);
 
   input.value = "";
