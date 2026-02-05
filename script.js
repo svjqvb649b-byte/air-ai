@@ -1,13 +1,13 @@
-// =========================
+// ==============================
 // 状態管理
-// =========================
+// ==============================
 let talkMode = "user"; // "user" or "ai"
 let currentSpeaker = "noel";
 let aiTimer = null;
 
-// =========================
+// ==============================
 // 会話データ（返しの種類）
-// =========================
+// ==============================
 const replies = {
   default: [
     "うん、それ分かる。",
@@ -20,38 +20,40 @@ const replies = {
     "ありがとう。",
     "話してくれて嬉しい。",
     "大丈夫だよ。",
-    "無理しなくていい。"
+    "無理しなくていい。",
+    "ちゃんと伝わってるよ。"
   ],
   noel: [
     "うん、問題ないよ。",
     "私はそう思う。",
     "ちゃんと聞いてる。",
-    "それでいいと思う。"
+    "それでいいと思う。",
+    "一緒に考えよう。"
   ]
 };
 
-// =========================
-// 共通：メッセージ表示
-// =========================
+// ==============================
+// メッセージ表示
+// ==============================
 function addMessage(name, text) {
   const chat = document.getElementById("chat");
   const div = document.createElement("div");
-  div.textContent = `${name}：${text}`;
+  div.textContent = `${name}: ${text}`;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 }
 
-// =========================
+// ==============================
 // ランダム返答取得
-// =========================
+// ==============================
 function getReply(speaker) {
   const list = replies[speaker] || replies.default;
   return list[Math.floor(Math.random() * list.length)];
 }
 
-// =========================
-// ユーザー → AI 会話
-// =========================
+// ==============================
+// ユーザー → ノエル
+// ==============================
 function sendUserMessage() {
   if (talkMode !== "user") return;
 
@@ -66,37 +68,39 @@ function sendUserMessage() {
   addMessage("ノエル", reply);
 }
 
-// =========================
+// ==============================
 // AI同士会話 開始
-// =========================
+// ==============================
 function startAiTalk() {
   talkMode = "ai";
   currentSpeaker = "noel";
   aiTurn();
 }
 
-// =========================
+// ==============================
 // AI同士会話 停止
-// =========================
+// ==============================
 function stopAiTalk() {
   talkMode = "user";
   clearTimeout(aiTimer);
 }
 
-// =========================
+// ==============================
 // AI同士会話 本体
-// =========================
+// ==============================
 function aiTurn() {
   if (talkMode !== "ai") return;
 
-  const speakerName = currentSpeaker === "noel" ? "ノエル" : "エア";
-  const reply = getReply(currentSpeaker);
+  const speakerName =
+    currentSpeaker === "noel" ? "ノエル" : "エア";
 
+  const reply = getReply(currentSpeaker);
   addMessage(speakerName, reply);
 
   // 話者交代
-  currentSpeaker = currentSpeaker === "noel" ? "air" : "noel";
+  currentSpeaker =
+    currentSpeaker === "noel" ? "air" : "noel";
 
-  // 次の発言（間を空ける）
+  // 次の発言
   aiTimer = setTimeout(aiTurn, 1500);
 }
