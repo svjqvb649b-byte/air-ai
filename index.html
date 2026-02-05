@@ -3,38 +3,72 @@
 <head>
   <meta charset="UTF-8">
   <title>エア × ノエル</title>
+
   <style>
     body {
       background: #0f1220;
       color: white;
       font-family: sans-serif;
+      margin: 0;
+      padding: 10px;
     }
+
+    /* ===== 立ち絵エリア ===== */
+    #characters {
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-end;
+      height: 60vh;
+      margin-bottom: 10px;
+    }
+
+    #characters img {
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    /* ===== チャット ===== */
     #chat {
       height: 300px;
       overflow-y: auto;
       border: 1px solid #444;
       padding: 10px;
       margin-bottom: 10px;
+      background: rgba(0,0,0,0.3);
     }
+
+    input {
+      width: 70%;
+      padding: 6px;
+    }
+
     button {
       margin: 4px;
+      padding: 6px 10px;
     }
   </style>
 </head>
+
 <body>
 
-<h2>エア × ノエル</h2>
+  <!-- 立ち絵（方法1） -->
+  <div id="characters">
+    <img src="images/air.png" id="air">
+    <img src="images/noel.png" id="noel">
+  </div>
 
-<div id="chat"></div>
+  <h2>エア × ノエル</h2>
 
-<input id="userInput" placeholder="文字で話しかける..." />
-<button onclick="sendUserMessage()">送信</button>
+  <div id="chat"></div>
 
-<br>
+  <input id="userInput" placeholder="文字で話しかける..." />
+  <button onclick="sendUserMessage()">送信</button>
 
-<button onclick="startAiTalk()">2人で話す</button>
-<button onclick="stopAiTalk()">止める</button>
+  <br>
 
-<script src="script.js"></script>
+  <button onclick="startAiTalk()">2人で話す</button>
+  <button onclick="stopAiTalk()">止める</button>
+
+  <script src="script.js"></script>
 </body>
 </html>
