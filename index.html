@@ -1,38 +1,40 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Air & Noel</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>エア × ノエル</title>
+  <style>
+    body {
+      background: #0f1220;
+      color: white;
+      font-family: sans-serif;
+    }
+    #chat {
+      height: 300px;
+      overflow-y: auto;
+      border: 1px solid #444;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    button {
+      margin: 4px;
+    }
+  </style>
 </head>
 <body>
-  <div id="app">
 
-    <div class="characters">
-      <!-- エア -->
-      <div class="character">
-        <img id="airImage" src="air/air_normal.jpg" alt="エア">
-        <div class="name">エア</div>
-      </div>
+<h2>エア × ノエル</h2>
 
-      <!-- ノエル -->
-      <div class="character">
-        <img id="noelImage" src="images/noel/noel_normal.jpg" alt="ノエル">
-        <div class="name">ノエル</div>
-      </div>
-    </div>
+<div id="chat"></div>
 
-    <div id="log"></div>
+<input id="userInput" placeholder="文字で話しかける…" />
+<button onclick="sendUserMessage()">送信</button>
 
-    <div class="inputArea">
-      <input id="textInput" type="text" placeholder="文字で話しかける…" />
-      <button onclick="send()">送信</button>
-      <button>話す</button>
-    </div>
+<br>
 
-  </div>
+<button onclick="startAiTalk()">2人で話す</button>
+<button onclick="stopAiTalk()">止める</button>
 
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
