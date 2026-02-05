@@ -50,18 +50,31 @@ function getReply(speaker) {
 }
 
 // ========================
-// ユーザー → ノエル
+// ユーザー入力
 // ========================
 function sendUserMessage() {
-  if (talkMode !== "user") return;
-
   const input = document.getElementById("userInput");
   const text = input.value.trim();
   if (!text) return;
 
+  // ★ ユーザーが喋ったらAI会話は止まる
+  stopAiTalk();
+
   addMessage("あなた", text);
   input.value = "";
 
+  // ★ AI同士会話を指示する言葉
+  if (
+    text.includes("2人で話して") ||
+    text.includes("二人で話して") ||
+    text.includes("会話して")
+  ) {
+    addMessage("ノエル", "うん、分かった。エアと話すね。");
+    startAiTalk();
+    return;
+  }
+
+  // 通常会話
   const reply = getReply("noel");
   addMessage("ノエル", reply);
 }
@@ -98,6 +111,5 @@ function aiTurn() {
   // 話者交代
   currentSpeaker = currentSpeaker === "noel" ? "air" : "noel";
 
-  // 次の発言
   aiTimer = setTimeout(aiTurn, 1500);
 }
