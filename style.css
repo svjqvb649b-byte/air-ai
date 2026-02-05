@@ -18,25 +18,24 @@ body {
 
   display: flex;
   justify-content: center;
-  gap: 24px;
+  gap: 28px;
 
   z-index: 10;
 }
 
-/* 共通：立ち絵枠 */
+/* ★立ち絵（サイズ拡大） */
 #characters img {
-  width: 140px;        /* 枠サイズ（今の見た目に近い） */
-  height: 140px;
-  border-radius: 20px;
+  width: 180px;        /* ← 大きくした */
+  height: 180px;       /* ← 大きくした */
 
+  border-radius: 22px;
   background: #111;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.45);
 
-  /* ★ここが一番重要 */
-  object-fit: contain;      /* 絵を切らずに全体表示 */
-  object-position: center;  /* 中央寄せ */
+  object-fit: contain;      /* 全体表示 */
+  object-position: center;
 
-  padding: 8px;             /* 顔アップ防止用の余白 */
+  padding: 10px;            /* 顔アップ防止 */
 }
 
 /* チャット全体 */
