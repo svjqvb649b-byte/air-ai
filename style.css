@@ -1,151 +1,81 @@
-/* =========================
-   全体リセット & 画面固定
-========================= */
-* {
-  box-sizing: border-box;
-}
-
-html, body {
+/* 全体背景 */
+body {
   margin: 0;
   padding: 0;
-  width: 100%;
-  height: 100%;
-  background: #0b1020;
-  color: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont,
-               "Segoe UI", "Hiragino Kaku Gothic ProN",
-               Meiryo, sans-serif;
+  background: linear-gradient(180deg, #0b132b, #1c2541);
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  color: white;
+  height: 100vh;
+  overflow: hidden;
 }
 
-/* =========================
-   アプリ全体ラッパー
-========================= */
-.app {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
+/* キャラ表示エリア */
+#characters {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
 
-/* =========================
-   キャラ表示エリア
-========================= */
-.character-area {
-  width: 100%;
   display: flex;
   justify-content: center;
   gap: 24px;
-  padding: 16px 0;
+
+  z-index: 10;
 }
 
-/* キャラ1人分 */
-.character {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* 枠サイズ（固定） */
-.character-frame {
-  width: 140px;
+/* 共通：立ち絵枠 */
+#characters img {
+  width: 140px;        /* 枠サイズ（今の見た目に近い） */
   height: 140px;
-  border-radius: 18px;
-  background: #121933;
-  overflow: hidden;
+  border-radius: 20px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: #111;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+
+  /* ★ここが一番重要 */
+  object-fit: contain;      /* 絵を切らずに全体表示 */
+  object-position: center;  /* 中央寄せ */
+
+  padding: 8px;             /* 顔アップ防止用の余白 */
 }
 
-/* ★ 立ち絵の見え方（ここが核心） */
-.character-frame img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;   /* 全体表示 */
-  object-position: center;
-}
+/* チャット全体 */
+#chat {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
 
-/* 名前 */
-.character-name {
-  margin-top: 6px;
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-/* 喋ってる時 */
-.character-frame.active {
-  box-shadow: 0 0 14px rgba(120,160,255,0.9);
-  transform: scale(1.03);
-  transition: 0.2s;
-}
-
-/* =========================
-   会話エリア
-========================= */
-.chat-area {
-  flex: 1;
-  margin: 0 16px;
-  padding: 14px;
-  background: #141b34;
-  border-radius: 16px;
-  overflow-y: auto;
-}
-
-/* メッセージ */
-.message {
-  margin-bottom: 12px;
-  line-height: 1.6;
-}
-
-.message .speaker {
-  font-size: 13px;
-  font-weight: bold;
-  opacity: 0.85;
-}
-
-.message .text {
-  font-size: 15px;
-}
-
-/* =========================
-   入力エリア
-========================= */
-.input-area {
-  width: 100%;
   padding: 12px;
-  display: flex;
-  gap: 8px;
-  background: #0b1020;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(10px);
 }
 
-.input-area input {
-  flex: 1;
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: none;
-  font-size: 15px;
-}
-
-.input-area button {
-  padding: 10px 14px;
-  border-radius: 12px;
-  border: none;
-  background: #4c6fff;
-  color: #fff;
+/* メッセージ表示 */
+#messages {
+  max-height: 45vh;
+  overflow-y: auto;
+  margin-bottom: 8px;
   font-size: 14px;
 }
 
-/* =========================
-   スマホ最適化
-========================= */
-@media (max-width: 480px) {
-  .character-frame {
-    width: 120px;
-    height: 120px;
-  }
+/* 入力欄 */
+#userInput {
+  width: calc(100% - 70px);
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+}
 
-  .chat-area {
-    margin: 0 12px;
-  }
+/* 送信ボタン */
+button {
+  width: 60px;
+  padding: 8px;
+  margin-left: 4px;
+  border-radius: 8px;
+  border: none;
+  background: #5bc0be;
+  color: #000;
+  font-weight: bold;
 }
