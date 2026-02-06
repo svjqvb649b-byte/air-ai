@@ -1,37 +1,35 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>エア × ノエル</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>エア × ノエル</title>
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-  <!-- 立ち絵 -->
-  <div id="characters">
-    <div class="chara">
-      <img src="./noel.png" alt="ノエル">
-      <span class="label">ノエル</span>
-    </div>
-
-    <div class="chara">
-      <img src="./air.png" alt="エア">
-      <span class="label">エア</span>
-    </div>
+<div id="characters">
+  <div class="chara">
+    <img id="noelImg" src="noel.png">
+    <div class="label">ノエル</div>
   </div>
 
-  <!-- チャット -->
-  <div id="chat">
-    <div id="messages"></div>
-
-    <div id="inputArea">
-      <input id="userInput" placeholder="話しかけてみて">
-      <button onclick="sendMessage()">送信</button>
-    </div>
+  <div class="chara">
+    <img id="airImg" src="air.png">
+    <div class="label">エア</div>
   </div>
+</div>
 
-  <!-- 既存機能はそのまま -->
-  <script src="script.js"></script>
+<div id="chat">
+  <div id="messages"></div>
+
+  <div id="inputArea">
+    <input id="userInput" placeholder="話しかけてみて">
+    <button onclick="sendMessage()">送信</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
