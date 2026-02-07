@@ -8,26 +8,29 @@
 </head>
 <body>
 
-<div id="characters">
-  <div class="char">
-    <span class="label">ノエル</span>
-    <img id="noelImg" src="noel.png">
-  </div>
-  <div class="char">
-    <span class="label">エア</span>
-    <img id="airImg" src="air.png">
-  </div>
-</div>
+  <!-- 立ち絵エリア -->
+  <div id="characters">
+    <div class="chara-card">
+      <div class="chara-name">ノエル</div>
+      <img id="noel" src="noel.png" alt="ノエル">
+    </div>
 
-<div id="chat">
-  <div id="messages"></div>
-
-  <div id="inputArea">
-    <input id="userInput" placeholder="話しかけてみて">
-    <button onclick="sendMessage()">送信</button>
+    <div class="chara-card">
+      <div class="chara-name">エア</div>
+      <img id="air" src="air.png" alt="エア">
+    </div>
   </div>
-</div>
 
-<script src="script.js"></script>
+  <!-- チャットエリア -->
+  <div id="chat">
+    <div id="messages"></div>
+
+    <div id="inputArea">
+      <input id="userInput" placeholder="話しかけてみて">
+      <button onclick="sendMessage()">送信</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
