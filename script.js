@@ -1,119 +1,168 @@
-const messages = document.getElementById("messages");
-const input = document.getElementById("userInput");
+// ==========================
+// 基本設定（既存維持）
+// ==========================
+const chatLog = document.getElementById("chat-log");
+const userInput = document.getElementById("user-input");
 
-let duoTalking = false;
-let duoTimer = null;
+let autoTalkMode = false;
 
-function addMessage(who, text) {
+// ==========================
+// 共通：メッセージ表示
+// ==========================
+function addMessage(speaker, text) {
   const div = document.createElement("div");
-  div.className = "msg";
-  div.textContent = `${who}：${text}`;
-  messages.appendChild(div);
-  messages.scrollTop = messages.scrollHeight;
+  div.className = "message " + speaker;
+  div.textContent = text;
+  chatLog.appendChild(div);
+  chatLog.scrollTop = chatLog.scrollHeight;
 }
 
-function sendMessage() {
-  const text = input.value.trim();
-  if (!text) return;
+// ==========================
+// 反応データ（拡張）
+// ==========================
 
-  duoTalking = false;
-  clearInterval(duoTimer);
+// --- 挨拶 ---
+const greetings = {
+  morning: ["おはよう", "おは"],
+  daytime: ["こんにちは", "こんちは"],
+  night: ["おやすみ", "おやす"],
+  returnHome: ["ただいま"],
+  goOut: ["いってきます"]
+};
 
-  addMessage("あなた", text);
-  input.value = "";
+const greetingReplies = {
+  morning: [
+    "おはよう。今日も一緒にやろう。",
+    "おはよう。無理しない一日でいこう。",
+    "朝だね。ちゃんと起きられてえらいよ。"
+  ],
+  daytime: [
+    "こんにちは。今どんな感じ？",
+    "こんにちは。少し休みながらでも大丈夫だよ。"
+  ],
+  night: [
+    "おやすみ。今日はよく頑張ったね。",
+    "おやすみ。ちゃんと休もう。"
+  ],
+  returnHome: [
+    "おかえり。お疲れさま。",
+    "おかえり。少し一息つこう。"
+  ],
+  goOut: [
+    "いってらっしゃい。気をつけて。",
+    "いってらっしゃい。帰ってきたらまた話そう。"
+  ]
+};
 
-  respond(text);
+// --- 雑談 ---
+const smallTalkPatterns = [
+  { words: ["疲れた", "つかれた"], replies: [
+    "それはしんどいよね。少し休もう。",
+    "無理しすぎてない？深呼吸しよ。"
+  ]},
+  { words: ["眠い", "ねむい"], replies: [
+    "眠い時は効率落ちるよ。少し休憩もあり。",
+    "無理せず、横になれるならなって。"
+  ]},
+  { words: ["暇", "ひま"], replies: [
+    "じゃあちょっと雑談しよっか。",
+    "暇な時間も大事だよ。何する？"
+  ]},
+  { words: ["しんどい", "つらい"], replies: [
+    "それ言ってくれてありがとう。",
+    "一人で抱えなくていいからね。"
+  ]},
+  { words: ["楽しい", "たのしい"], replies: [
+    "それはいいね。聞いてて嬉しい。",
+    "その気持ち大事にしよ。"
+  ]},
+  { words: ["嬉しい", "うれしい"], replies: [
+    "よかったね。ちゃんと伝わってるよ。",
+    "その調子、その調子。"
+  ]}
+];
+
+// ==========================
+// 判定ロジック
+// ==========================
+function includesAny(text, list) {
+  return list.some(word => text.includes(word));
 }
 
-/* =========================
-   反応辞書
-========================= */
-
-const tiredWords = [
-  "疲れ", "しんど", "眠い", "だる", "きつい", "つかれた",
-  "やる気ない", "限界", "もう無理"
-];
-
-const tiredResponsesNoel = [
-  "それはきつかったね",
-  "無理しなくていいよ",
-  "今日はよく頑張ったと思う",
-  "少し休もっか",
-  "ちゃんと話してくれてありがとう"
-];
-
-const tiredResponsesAir = [
-  "……無理は非効率",
-  "……休息は必要",
-  "……今は止まっていい",
-  "……エネルギー低下を確認",
-  "……静かにする？"
-];
-
-const greetMorning = ["おはよう"];
-const greetNight = ["おやすみ", "眠る"];
-
-function random(arr) {
+function getRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-/* =========================
-   メイン反応処理
-========================= */
-
-function respond(text) {
-  // 挨拶
-  if (greetMorning.some(w => text.includes(w))) {
-    addMessage("ノエル", "おはよう！今日も来てくれて嬉しいよ");
-    addMessage("エア", "……おはよう");
-    return;
+// ==========================
+// 会話処理（既存拡張）
+// ==========================
+function processUserMessage(text) {
+  // --- 挨拶チェック ---
+  for (let key in greetings) {
+    if (includesAny(text, greetings[key])) {
+      addMessage("air", getRandom(greetingReplies[key]));
+      addMessage("noel", "うん、ちゃんと反応できてるよ 😊");
+      return;
+    }
   }
 
-  if (greetNight.some(w => text.includes(w))) {
-    addMessage("ノエル", "おやすみ。ちゃんと休んでね");
-    addMessage("エア", "……良い休息を");
-    return;
+  // --- 雑談チェック ---
+  for (let talk of smallTalkPatterns) {
+    if (includesAny(text, talk.words)) {
+      addMessage("air", getRandom(talk.replies));
+      addMessage("noel", "今の気持ち、ちゃんと受け取ったよ。");
+      return;
+    }
   }
 
-  // 疲れ系雑談
-  if (tiredWords.some(w => text.includes(w))) {
-    addMessage("ノエル", random(tiredResponsesNoel));
-    addMessage("エア", random(tiredResponsesAir));
-    return;
-  }
-
-  // 2人会話開始
-  if (text.includes("2人で話して")) {
-    startDuo();
-    return;
-  }
-
-  // 通常雑談
-  addMessage("ノエル", "うん、聞いてるよ");
-  addMessage("エア", "……問題ない");
+  // --- 通常返答（既存） ---
+  addMessage("air", "うん、聞いてるよ。");
+  addMessage("noel", "続けてどうぞ。");
 }
 
-/* =========================
-   2人会話
-========================= */
+// ==========================
+// 入力処理
+// ==========================
+function sendMessage() {
+  const text = userInput.value.trim();
+  if (!text) return;
 
-const duoLines = [
-  ["ノエル", "今日は静かだね"],
-  ["エア", "……落ち着いている"],
-  ["ノエル", "こういう時間も悪くないよね"],
-  ["エア", "……同意"],
-  ["ノエル", "そばにいるって感じ"],
-  ["エア", "……それで十分"]
-];
+  addMessage("user", text);
+  userInput.value = "";
 
-function startDuo() {
-  duoTalking = true;
-  let i = 0;
+  autoTalkMode = false; // ユーザーが喋ったら自動会話停止
+  processUserMessage(text);
+}
 
-  duoTimer = setInterval(() => {
-    if (!duoTalking) return;
-    const [who, line] = duoLines[i % duoLines.length];
-    addMessage(who, line);
-    i++;
-  }, 2500);
+// ==========================
+// エア＆ノエル自動会話（既存維持）
+// ==========================
+function startAutoTalk() {
+  if (autoTalkMode) return;
+  autoTalkMode = true;
+
+  const airLines = [
+    "今日はどうする予定？",
+    "少し落ち着いた時間も大事だよ。",
+    "今のペース、悪くない。"
+  ];
+
+  const noelLines = [
+    "うんうん。",
+    "ちゃんと考えてるのえらいよ。",
+    "一緒に進めば大丈夫。"
+  ];
+
+  function loop() {
+    if (!autoTalkMode) return;
+
+    addMessage("air", getRandom(airLines));
+    setTimeout(() => {
+      if (!autoTalkMode) return;
+      addMessage("noel", getRandom(noelLines));
+      setTimeout(loop, 5000);
+    }, 2000);
+  }
+
+  loop();
 }
