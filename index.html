@@ -2,35 +2,31 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>エア × ノエル</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ノエル＆エア</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- 立ち絵エリア -->
-  <div id="characters">
-    <div class="chara-card">
-      <div class="chara-name">ノエル</div>
-      <img id="noel" src="noel.png" alt="ノエル">
+<div class="app">
+
+  <div class="panels">
+    <div class="panel">
+      <h2>ノエル</h2>
+      <div id="noelLog" class="log"></div>
+      <input id="noelInput" placeholder="ノエルに話す">
+      <button id="noelSend">送信</button>
     </div>
 
-    <div class="chara-card">
-      <div class="chara-name">エア</div>
-      <img id="air" src="air.png" alt="エア">
-    </div>
-  </div>
-
-  <!-- チャットエリア -->
-  <div id="chat">
-    <div id="messages"></div>
-
-    <div id="inputArea">
-      <input id="userInput" placeholder="話しかけてみて">
-      <button onclick="sendMessage()">送信</button>
+    <div class="panel">
+      <h2>エア</h2>
+      <div id="airLog" class="log"></div>
+      <input id="airInput" placeholder="エアに話す">
+      <button id="airSend">送信</button>
     </div>
   </div>
 
-  <script src="script.js"></script>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
