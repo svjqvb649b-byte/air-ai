@@ -1,65 +1,33 @@
-// ================================
-// ノエル＆エア 会話システム 完全版
-// ================================
-
-// ---- モード ----
-let talkMode = "normal"; 
-// normal / duo / banter
-
-// ---- キーワード ----
-const duoStartWords = ["2人で話して", "ノエルも入って"];
-const banterStartWords = ["掛け合いして", "2人で会話続けて", "ずっと2人で話して"];
-const backWords = ["戻って", "通常に戻して", "一人に戻って"];
-
-const casualKeywords = [
-  "疲れた","つかれた","眠い","ねむい","だるい",
-  "おはよう","おやすみ","こんにちは","こんばんは",
-  "暇","ひま","雑談"
-];
-
-// ================================
-// エア（既存維持）
-// ================================
-const airResponses = {
-  tired: [
-    "んー…それはしんどいね。無理しなくていいよ。",
-    "今日は省エネでいこ。",
-    "ノエルと話したけど、今日は休む方向がよさそう。"
-  ],
-  morning: [
-    "おはよ。起きただけでえらいよ。",
-    "朝はゆっくりでいいと思う。",
-    "ノエルも『今日は様子見で』って言ってた。"
-  ],
-  night: [
-    "おやすみ。今日もよくやった。",
-    "続きはまた明日でいいよ。",
-    "ノエルも『今日は十分』って。"
-  ],
-  free: [
-    "じゃあ雑談しよ。",
-    "こういう時間、嫌いじゃない。",
-    "ノエルも今は軽めがいいってさ。"
-  ],
-  default: [
-    "そっか。まぁ流れでいこ。",
-    "無理に決めなくていいよ。",
-    "ノエルと相談したけど、今は様子見かな。"
-  ]
-};
-
-function airReply(type) {
-  const list = airResponses[type] || airResponses.default;
-  return list[Math.floor(Math.random() * list.length)];
+// ===============================
+// 共通ログ表示
+// ===============================
+function addLog(logId, speaker, text) {
+  const log = document.getElementById(logId);
+  const div = document.createElement("div");
+  div.className = "message";
+  div.textContent = `${speaker}：${text}`;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
 }
 
-// ================================
-// ノエル
-// ================================
+// ===============================
+// 入力タイプ判定
+// ===============================
+function detectType(text) {
+  if (text.includes("疲れ")) return "tired";
+  if (text.includes("眠")) return "night";
+  if (text.includes("おは")) return "morning";
+  if (text.includes("雑談")) return "free";
+  return "default";
+}
+
+// ===============================
+// ノエル（思考・まとめ役）
+// ===============================
 const noelResponses = {
   tired: [
     "疲労が溜まっているね。今日は回復を優先しよう。",
-    "今は無理をしない判断が正解だ。"
+    "今日は無理をしない判断が正解だよ。"
   ],
   morning: [
     "朝は準備運動の時間だと思えばいい。",
@@ -67,7 +35,7 @@ const noelResponses = {
   ],
   night: [
     "今日は十分頑張った。休もう。",
-    "睡眠は一番の回復手段だ。"
+    "睡眠は一番の回復手段だよ。"
   ],
   free: [
     "雑談は思考の整理にもなる。",
@@ -84,76 +52,105 @@ function noelReply(type) {
   return list[Math.floor(Math.random() * list.length)];
 }
 
-// ================================
-// ノエルの判断（内部）
-// ================================
-function noelJudge(msg) {
-  if (msg.includes("疲") || msg.includes("つか")) return "tired";
-  if (msg.includes("おは")) return "morning";
-  if (msg.includes("おやす")) return "night";
-  if (casualKeywords.some(k => msg.includes(k))) return "free";
-  return "default";
-}
-
-// ================================
-// 掛け合い用 追加一言
-// ================================
-const banterFollow = {
+// ===============================
+// エア（雑談・相棒・シエスタ風）
+// ===============================
+const airResponses = {
   tired: [
-    "今日は本当に休んだ方がいいね。",
-    "無理したら逆効果だと思う。"
+    "んー…それはしんどいね。今日は無理しない日でいいと思う。",
+    "今日は省エネ運転でいこ。ちゃんと休むのも作戦だし。",
+    "ノエルとも話したけど、今日は回復優先がよさそう。"
+  ],
+  morning: [
+    "おはよ。起きただけで今日はもう半分成功だよ。",
+    "朝から全力出さなくていいって思う。",
+    "ノエルも『今日は様子見で』って言ってた。"
+  ],
+  night: [
+    "もう夜かぁ…。今日はここまでで十分じゃない？",
+    "よくやったよ。続きは明日の自分に任せよ。",
+    "ノエルも『今日は合格』ってさ。"
   ],
   free: [
-    "こういう時間も悪くないよね。",
-    "考えすぎないのも大事。"
+    "じゃあ少し雑談しよ。こういう時間、悪くない。",
+    "今は考えなくていい話題でもいいんじゃない？",
+    "ノエルも『軽めでいい』って言ってたし。"
   ],
   default: [
-    "まぁ、ゆっくり行こう。",
-    "流れに任せるのもありだね。"
+    "そっかぁ。まぁ流れに任せよ。",
+    "今すぐ決めなくていいよ。",
+    "ノエルと相談したけど、今は様子見かな。"
   ]
 };
 
-function banterExtra(type) {
-  const list = banterFollow[type] || banterFollow.default;
+function airReply(type) {
+  const list = airResponses[type] || airResponses.default;
   return list[Math.floor(Math.random() * list.length)];
 }
 
-// ================================
-// メイン処理
-// ================================
-function getResponse(userMessage) {
+// ===============================
+// メイン：相談して返す
+// ===============================
+function consultAndReply(userText) {
+  const type = detectType(userText);
 
-  // ---- 戻す ----
-  if (backWords.some(w => userMessage.includes(w))) {
-    talkMode = "normal";
-    return "エア「了解。いつもの感じに戻すね。」\nノエル「必要になったらまた呼んで。」";
-  }
+  const noelText = noelReply(type);
+  const airText = airReply(type);
 
-  // ---- 掛け合いON ----
-  if (banterStartWords.some(w => userMessage.includes(w))) {
-    talkMode = "banter";
-    return "エア「じゃあしばらく2人で話そ。」\nノエル「了解。掛け合いモードに入るよ。」";
-  }
-
-  // ---- 2人1回 ----
-  if (duoStartWords.some(w => userMessage.includes(w))) {
-    talkMode = "duo";
-    return "エア「ノエルも一緒に話そ。」\nノエル「うん、入るよ。」";
-  }
-
-  const type = noelJudge(userMessage);
-
-  // ---- 掛け合いモード ----
-  if (talkMode === "banter") {
-    return `ノエル「${noelReply(type)}」\nエア「${airReply(type)}」\nノエル「${banterExtra(type)}」\nエア「だね。」`;
-  }
-
-  // ---- 2人1往復 ----
-  if (talkMode === "duo") {
-    talkMode = "normal";
-    return `ノエル「${noelReply(type)}」\nエア「${airReply(type)}」`;
-  }
-
-  // ---- 通常 ----
-  return airReply(type);
+  addLog("noelLog", "ノエル", noelText);
+  addLog("airLog", "エア", airText);
 }
+
+// ===============================
+// 掛け合いモード
+// ===============================
+let banterTimer = null;
+
+function startBanter() {
+  stopBanter();
+  banterTimer = setInterval(() => {
+    const type = "free";
+    addLog("noelLog", "ノエル", noelReply(type));
+    addLog("airLog", "エア", airReply(type));
+  }, 3500);
+}
+
+function stopBanter() {
+  if (banterTimer) {
+    clearInterval(banterTimer);
+    banterTimer = null;
+  }
+}
+
+// ===============================
+// 送信処理（ボタン不具合対策）
+// ===============================
+window.sendMessage = function () {
+  const input = document.getElementById("userInput");
+  const text = input.value.trim();
+  if (!text) return;
+
+  addLog("userLog", "あなた", text);
+
+  if (text.includes("2人で話して") || text.includes("掛け合い")) {
+    startBanter();
+  } else {
+    stopBanter();
+    consultAndReply(text);
+  }
+
+  input.value = "";
+};
+
+// ===============================
+// Enterキー対応（スマホ・PC両対応）
+// ===============================
+document.addEventListener("DOMContentLoaded", () => {
+  const input = document.getElementById("userInput");
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+});
