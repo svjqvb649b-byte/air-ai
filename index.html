@@ -1,32 +1,28 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>ノエル＆エア</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>Noel & Air</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
-<div class="app">
-
-  <div class="panels">
+  <div id="app">
     <div class="panel">
       <h2>ノエル</h2>
       <div id="noelLog" class="log"></div>
-      <input id="noelInput" placeholder="ノエルに話す">
-      <button id="noelSend">送信</button>
     </div>
 
     <div class="panel">
       <h2>エア</h2>
       <div id="airLog" class="log"></div>
-      <input id="airInput" placeholder="エアに話す">
-      <button id="airSend">送信</button>
     </div>
   </div>
 
-</div>
+  <div class="input-area">
+    <input id="userInput" type="text" placeholder="ここに入力" />
+    <button id="sendBtn">送信</button>
+  </div>
 
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
