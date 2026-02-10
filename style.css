@@ -1,90 +1,52 @@
-* {
-  box-sizing: border-box;
-}
-
 body {
-  margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont;
-  background: linear-gradient(180deg, #08162f, #020814);
-  color: white;
-  height: 100vh;
+  background: #0b0f1a;
+  color: #fff;
+  font-family: sans-serif;
+}
+
+.app {
+  padding: 20px;
+}
+
+.panels {
   display: flex;
-  flex-direction: column;
+  gap: 20px;
 }
 
-/* ===== 立ち絵 ===== */
-
-#characters {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  padding: 16px;
+.panel {
+  width: 50%;
+  background: #11162a;
+  padding: 15px;
+  border-radius: 12px;
 }
 
-.chara-card {
-  width: 150px;
-  height: 150px;
-  background: rgba(0,0,0,0.6);
-  border-radius: 20px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 0 20px rgba(0,0,0,0.6);
-}
-
-.chara-name {
-  position: absolute;
-  top: 8px;
-  left: 10px;
-  font-size: 14px;
-  opacity: 0.9;
-  z-index: 2;
-}
-
-.chara-card img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;   /* ← 超重要 */
-  display: block;
-}
-
-/* ===== チャット ===== */
-
-#chat {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 12px;
-}
-
-#messages {
-  flex: 1;
-  background: rgba(0,0,0,0.35);
-  border-radius: 20px;
-  padding: 16px;
+.log {
+  height: 300px;
+  background: #0b0f1a;
+  margin-bottom: 10px;
+  padding: 10px;
   overflow-y: auto;
-  font-size: 15px;
-  line-height: 1.6;
+  border-radius: 8px;
 }
 
-#inputArea {
-  display: flex;
-  gap: 10px;
-  margin-top: 12px;
+.message {
+  margin-bottom: 6px;
+  font-size: 14px;
 }
 
-#userInput {
-  flex: 1;
-  padding: 12px;
-  border-radius: 14px;
+input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 5px;
+  border-radius: 6px;
   border: none;
-  font-size: 16px;
 }
 
 button {
-  padding: 0 18px;
-  border-radius: 14px;
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
   border: none;
   background: #3b82f6;
   color: white;
-  font-size: 16px;
 }
