@@ -4,7 +4,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const userInput = document.getElementById("userInput");
   const sendBtn = document.getElementById("sendBtn");
 
-  /* ===== 表示共通 ===== */
+  let kaiwaMode = false; // 掛け合いモードON/OFF
+
+  /* ===== 共通表示 ===== */
   function addLog(target, speaker, text) {
     const div = document.createElement("div");
     div.className = "message";
@@ -13,44 +15,59 @@ document.addEventListener("DOMContentLoaded", () => {
     target.scrollTop = target.scrollHeight;
   }
 
-  /* ===== ノエル：整理・判断役 ===== */
+  /* ===== ノエル ===== */
   function noelThink(text) {
     if (text.includes("疲れた")) {
-      return "今日は相当エネルギー使ったみたいだね。無理しない判断が一番だよ。";
+      return "今日はだいぶエネルギー使ったね。無理しない選択でいい。";
     }
     if (text.includes("眠い") || text.includes("寝る")) {
-      return "睡眠は一番の回復手段だ。今日はここで区切ろう。";
+      return "今日はここで区切ろう。回復を優先して。";
     }
     if (text.includes("テスト")) {
-      return "テストお疲れさま。結果より、ちゃんと向き合ったことが大事だよ。";
+      return "テストお疲れさま。向き合った事実はちゃんと残ってる。";
     }
     if (text.includes("おはよう")) {
-      return "おはよう。今日は無理にペースを上げなくていい。";
+      return "おはよう。今日はゆっくり立ち上がろう。";
     }
     if (text.includes("おやすみ")) {
-      return "おやすみ。今日を終えるにはちょうどいいタイミングだね。";
+      return "おやすみ。今日を終えるにはいいタイミングだ。";
     }
     return "うん、その話題いいね。少し整理しながら考えよう。";
   }
 
-  /* ===== エア：シエスタ寄り相棒 ===== */
+  /* ===== エア（シエスタ寄り） ===== */
   function airThink(text) {
     if (text.includes("疲れた")) {
-      return "それはもう十分やった証拠だよ。今日は省エネでいこ。";
+      return "それはもう十分やったってことだよ。今日は省エネで。";
     }
     if (text.includes("眠い") || text.includes("寝る")) {
       return "んー…それはもう寝よって合図だと思う。";
     }
     if (text.includes("テスト")) {
-      return "テストかぁ。とりあえず終わったなら今日は勝ちでしょ。";
+      return "終わったなら今日は勝ちでしょ。細かいことは明日。";
     }
     if (text.includes("おはよう")) {
-      return "おはよ。起きただけで今日は合格だよ。";
+      return "おはよ。起きただけで今日は合格。";
     }
     if (text.includes("おやすみ")) {
       return "おやすみ。今日はここまでで十分。";
     }
     return "まあまあ、今は深く考えなくていいんじゃない？";
+  }
+
+  /* ===== 掛け合い用 ===== */
+  function kaiwaSequence() {
+    if (!kaiwaMode) return;
+
+    setTimeout(() => {
+      addLog(noelLog, "ノエル", "少し静かな時間だね。");
+      addLog(airLog, "エア", "こういう間、嫌いじゃないよ。");
+
+      setTimeout(() => {
+        addLog(noelLog, "ノエル", "考えすぎないのも、大事だ。");
+        addLog(airLog, "エア", "でしょ。今日はそれでいい。");
+      }, 1200);
+    }, 800);
   }
 
   /* ===== 相談して返す ===== */
@@ -67,20 +84,29 @@ document.addEventListener("DOMContentLoaded", () => {
     const text = userInput.value.trim();
     if (!text) return;
 
-    // ユーザー入力を両方に表示
     addLog(noelLog, "あなた", text);
     addLog(airLog, "あなた", text);
 
-    consultAndReply(text);
+    // 掛け合いモード切替
+    if (text.includes("掛け合い")) {
+      kaiwaMode = true;
+      addLog(noelLog, "ノエル", "了解。少し二人で話そう。");
+      addLog(airLog, "エア", "じゃあ任せて。");
+      kaiwaSequence();
+    } else if (text.includes("やめ")) {
+      kaiwaMode = false;
+      addLog(noelLog, "ノエル", "掛け合いモードを終了するね。");
+      addLog(airLog, "エア", "また気が向いたら呼んで。");
+    } else {
+      consultAndReply(text);
+    }
+
     userInput.value = "";
   }
 
   /* ===== イベント ===== */
   sendBtn.addEventListener("click", sendMessage);
-
   userInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      sendMessage();
-    }
+    if (e.key === "Enter") sendMessage();
   });
 });
