@@ -7,7 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let kaiwaMode = false; // 掛け合いモードON/OFF
 
-
   /* ===== 共通表示 ===== */
   function addLog(target, speaker, text) {
     const div = document.createElement("div");
@@ -17,20 +16,18 @@ document.addEventListener("DOMContentLoaded", () => {
     target.scrollTop = target.scrollHeight;
   }
 
-
-  /* ===== 感謝判定（追加機能） ===== */
+  /* ===== 感謝判定 ===== */
   function isThankYou(text) {
-    const words = ["ありがとう","有難う","サンキュー","thanks","thx","感謝"];
+    const words = ["ありがとう", "有難う", "サンキュー", "thanks", "thx", "感謝"];
     const lower = text.toLowerCase();
     return words.some(w => lower.includes(w));
   }
-
 
   /* ===== ノエル ===== */
   function noelThink(text) {
 
     if (text.includes("疲れた")) {
-      return "今日はだいぶエネルギー使ったね。無理しない選択でいい。";
+      return "今日はだいぶエネルギー使ったね。無理しないで。";
     }
 
     if (text.includes("眠い") || text.includes("寝る")) {
@@ -38,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (text.includes("テスト")) {
-      return "テストお疲れさま。向き合った事実はちゃんと残ってる。";
+      return "テストお疲れさま。向き合った事実はちゃんと価値がある。";
     }
 
     if (text.includes("おはよう")) {
@@ -46,10 +43,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (text.includes("おやすみ")) {
-      return "おやすみ。今日を終えるにはいいタイミングだ。";
+      return "おやすみ。今日を終えるにはいいタイミングだね。";
     }
 
-    // ⭐ 感謝対応追加（喋り方はそのまま系統）
     if (isThankYou(text)) {
       return "そう言ってもらえるのが一番嬉しい。こちらこそありがとう。";
     }
@@ -57,12 +53,11 @@ document.addEventListener("DOMContentLoaded", () => {
     return "うん、その話題いいね。少し整理しながら考えよう。";
   }
 
-
-  /* ===== エア（シエスタ寄り） ===== */
+  /* ===== エア（シエスタ風に調整） ===== */
   function airThink(text) {
 
     if (text.includes("疲れた")) {
-      return "それはもう分かりきったことだよ。今日は省エネで。";
+      return "それは分かりきったことだよ。今日は十分やった。";
     }
 
     if (text.includes("眠い") || text.includes("寝る")) {
@@ -81,41 +76,52 @@ document.addEventListener("DOMContentLoaded", () => {
       return "おやすみ。今日はここまでで十分。";
     }
 
-    // ⭐ 感謝対応追加
+    // ⭐ シエスタ風 感謝対応
     if (isThankYou(text)) {
-      return "こちらこそありがと。ちゃんと伝えてくれるの好きだよ。";
+      return "……ふふ。律儀だね。でも嫌いじゃないよ。";
     }
 
     return "まあまあ、今は深く考えなくていいんじゃない？";
   }
-
 
   /* ===== 掛け合い用 ===== */
   function kaiwaSequence() {
     if (!kaiwaMode) return;
 
     setTimeout(() => {
-      addLog(noelLog, "ノエル", "少し静かな時間だね。");
-      addLog(airLog, "エア", "こういう間、嫌いじゃないよ。");
+      addLog(noelLog, "ノエル", "少し静かな時間も必要だよ。");
+      addLog(airLog, "エア", "こういう間、嫌いじゃない。");
 
       setTimeout(() => {
-        addLog(noelLog, "ノエル", "考えすぎないのも、大事だ。");
-        addLog(airLog, "エア", "でしょ。今日はそれでいい。");
+        addLog(noelLog, "ノエル", "考えすぎないでいい。");
+        addLog(airLog, "エア", "でしょ。今日はもう十分。");
       }, 1200);
 
     }, 800);
   }
 
-
   /* ===== 相談して返す ===== */
   function consultAndReply(text) {
+
     const noelReply = noelThink(text);
     const airReply = airThink(text);
 
     addLog(noelLog, "ノエル", noelReply);
     addLog(airLog, "エア", airReply);
-  }
 
+    // ⭐ 感謝時の掛け合い（シエスタ風微調整）
+    if (isThankYou(text)) {
+      setTimeout(() => {
+        addLog(noelLog, "ノエル", "ちゃんと伝えてくれる人は信頼できる。");
+        addLog(airLog, "エア", "感謝を口にできるのは、案外強さだよ。");
+
+        setTimeout(() => {
+          addLog(noelLog, "ノエル", "これからも一緒に整えていこう。");
+          addLog(airLog, "エア", "……まあ、君なら悪くない相棒だ。");
+        }, 1200);
+      }, 900);
+    }
+  }
 
   /* ===== 送信処理 ===== */
   function sendMessage() {
@@ -128,21 +134,20 @@ document.addEventListener("DOMContentLoaded", () => {
     if (text.includes("掛け合い")) {
       kaiwaMode = true;
       addLog(noelLog, "ノエル", "了解。少し二人で話そう。");
-      addLog(airLog, "エア", "じゃお任せ。");
+      addLog(airLog, "エア", "任せて。少し付き合うよ。");
       kaiwaSequence();
-
-    } else if (text.includes("やめ")) {
+    } 
+    else if (text.includes("やめ")) {
       kaiwaMode = false;
       addLog(noelLog, "ノエル", "掛け合いモードを終了するね。");
       addLog(airLog, "エア", "また気が向いたら呼んで。");
-
-    } else {
+    } 
+    else {
       consultAndReply(text);
     }
 
     userInput.value = "";
   }
-
 
   /* ===== イベント ===== */
   sendBtn.addEventListener("click", sendMessage);
